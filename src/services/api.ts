@@ -14,6 +14,11 @@ export interface Document {
   file_size: number;
 }
 
+export interface StreamEvent {
+  type: string;
+  content: string;
+}
+
 export interface QueryResponse {
   query: string;
   answer: string;
@@ -53,19 +58,72 @@ export const apiService = {
     return response.data;
   },
 
-queryDocuments: async (
+  queryDocuments: async (
     query: string,
     filename: string | null,
     topK: number = 3,
     useLlm: boolean = true
   ): Promise<QueryResponse> => {
-    const response = await api.post('/query-documents/', {
+    const response = await api.post('/query-documents', {
       query: query,
       filename: filename,
       top_k: topK,
       use_llm_for_answer: useLlm,
     });
     return response.data;
+  },
+
+  queryDocumentsStream: async (
+    query: string,
+    filename: string | null = null,
+    topK: number = 3,
+    onEvent: (event: StreamEvent) => void
+  ): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/query-documents-stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: query,
+        filename: filename,
+        top_k: topK,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+
+    if (!reader) {
+      throw new Error('Response body is not readable');
+    }
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const eventData = JSON.parse(line.slice(6));
+              onEvent(eventData);
+            } catch (e) {
+              console.warn('Failed to parse SSE data:', line);
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
   },
 
   listDocuments: async () => {
