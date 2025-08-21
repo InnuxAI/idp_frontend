@@ -1,0 +1,341 @@
+"use client"
+
+import React, { useState, useEffect } from 'react';
+import { Search, FileText, Filter, Grid, List } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { CategoryBadge } from '@/components/ui/category-badge';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { DocumentsDataTable } from '@/components/documents-data-table';
+import { AppSidebar } from "@/components/app-sidebar";
+import { SiteHeader } from "@/components/site-header";
+import {
+  SidebarInset,
+  SidebarProvider,
+} from "@/components/ui/sidebar";
+import { apiService, Document } from '@/services/api';
+import { documentCategories, categorizeDocument, getCategoryColor, getCategoryById } from '@/lib/document-categories';
+
+export default function DataLibraryPage() {
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [pdfViewerModal, setPdfViewerModal] = useState<{ isOpen: boolean; docId: string; filename: string }>({
+    isOpen: false,
+    docId: '',
+    filename: '',
+  });
+
+  useEffect(() => {
+    loadDocuments();
+    // Check for category parameter in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const categoryParam = urlParams.get('category');
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+    }
+  }, []);
+
+  const loadDocuments = async () => {
+    try {
+      const response = await apiService.listDocuments();
+      setDocuments(response.documents || []);
+    } catch (error) {
+      console.error('Failed to load documents:', error);
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // Filter documents based on search and category
+  const filteredDocuments = documents.filter(doc => {
+    const matchesSearch = doc.filename.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = !selectedCategory || categorizeDocument(doc.filename) === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  // Group documents by category
+  const documentsByCategory = documentCategories.reduce((acc, category) => {
+    acc[category.id] = filteredDocuments.filter(doc => categorizeDocument(doc.filename) === category.id);
+    return acc;
+  }, {} as Record<string, Document[]>);
+
+  // Get filtered documents for the current category
+  const getCurrentCategoryDocuments = (categoryId: string) => {
+    return filteredDocuments.filter(doc => categorizeDocument(doc.filename) === categoryId);
+  };
+
+  const handleViewPdf = (docId: string, filename: string) => {
+    setPdfViewerModal({ isOpen: true, docId, filename });
+  };
+
+  const getPdfUrl = (docId: string) => {
+    return `http://localhost:8000/view-document/${docId}`;
+  };
+
+  return (
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
+      <AppSidebar variant="inset" />
+      <SidebarInset>
+        <SiteHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+              <div className="px-4 lg:px-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h1 className="text-3xl font-bold">Data Library</h1>
+                    <p className="text-muted-foreground">Manage and browse your document collection</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant={viewMode === 'grid' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewMode('grid')}
+                    >
+                      <Grid className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={viewMode === 'list' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewMode('list')}
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Search and Filter */}
+                <div className="flex items-center space-x-4 mb-6">
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search documents..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant={!selectedCategory ? 'default' : 'outline'}
+                      onClick={() => setSelectedCategory(null)}
+                    >
+                      <Filter className="h-4 w-4 mr-2" />
+                      All Categories
+                    </Button>
+                    {documentCategories.map((category) => (
+                      <Button
+                        key={category.id}
+                        variant={selectedCategory === category.id ? 'default' : 'outline'}
+                        onClick={() => setSelectedCategory(category.id)}
+                        className="flex items-center space-x-2"
+                      >
+                        <div 
+                          className="h-2 w-2 rounded-full" 
+                          style={{ backgroundColor: category.color }}
+                        />
+                        <span>{category.name}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Search Results Indicator */}
+                {searchQuery && (
+                  <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+                    <p className="text-sm text-muted-foreground">
+                      Found {filteredDocuments.length} document{filteredDocuments.length !== 1 ? 's' : ''} matching "{searchQuery}"
+                      {selectedCategory && (
+                        <span> in {documentCategories.find(cat => cat.id === selectedCategory)?.name}</span>
+                      )}
+                    </p>
+                  </div>
+                )}
+
+                {/* Content based on selected category */}
+                {!selectedCategory ? (
+                  // Overview Content
+                  <div className="space-y-6">
+                    {/* Category Overview Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {documentCategories.map((category) => (
+                        <Card 
+                          key={category.id} 
+                          className="cursor-pointer hover:shadow-md transition-shadow"
+                          onClick={() => setSelectedCategory(category.id)}
+                        >
+                          <CardHeader>
+                            <CardTitle className="flex items-center space-x-2">
+                              <span className="text-2xl">{category.icon}</span>
+                              <span className="text-lg">{category.name}</span>
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-sm text-muted-foreground mb-2">{category.description}</p>
+                            <CategoryBadge color={category.color}>
+                              {documentsByCategory[category.id]?.length || 0} documents
+                            </CategoryBadge>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+
+                    {/* Recent Documents */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Recent Documents</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {documents.length === 0 ? (
+                          <p className="text-center text-muted-foreground py-8">
+                            No documents uploaded yet
+                          </p>
+                        ) : viewMode === 'list' ? (
+                          <DocumentsDataTable 
+                            documents={searchQuery ? filteredDocuments.slice(0, 10) : documents.slice(0, 10)} 
+                            onDocumentDeleted={loadDocuments}
+                          />
+                        ) : (
+                          <div className="space-y-3">
+                            {(searchQuery ? filteredDocuments : documents).slice(0, 5).map((doc) => (
+                              <div 
+                                key={doc.doc_id} 
+                                className="flex items-center justify-between p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                                onClick={() => handleViewPdf(doc.doc_id, doc.filename)}
+                              >
+                                <div className="flex items-center space-x-3">
+                                  <FileText className="h-5 w-5 text-muted-foreground" />
+                                  <div>
+                                    <p className="text-sm font-medium">{doc.filename}</p>
+                                    <div className="flex items-center space-x-2 mt-1">
+                                      <Badge variant="outline" className="text-xs">
+                                        {doc.content_type.includes('pdf') ? 'PDF' : 'Word'}
+                                      </Badge>
+                                      <span className="text-xs text-muted-foreground">
+                                        {formatFileSize(doc.file_size)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <CategoryBadge color={getCategoryColor(categorizeDocument(doc.filename))}>
+                                  {documentCategories.find(cat => cat.id === categorizeDocument(doc.filename))?.name || 'Other'}
+                                </CategoryBadge>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                ) : (
+                  // Category-specific Content
+                  <div className="space-y-4">
+                    {(() => {
+                      const category = documentCategories.find(cat => cat.id === selectedCategory);
+                      if (!category) return null;
+                      
+                      return (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h2 className="text-2xl font-bold flex items-center space-x-2">
+                                <span>{category.icon}</span>
+                                <span>{category.name}</span>
+                              </h2>
+                              <p className="text-muted-foreground">{category.description}</p>
+                            </div>
+                            <CategoryBadge color={category.color}>
+                              {getCurrentCategoryDocuments(category.id).length} documents
+                            </CategoryBadge>
+                          </div>
+
+                          {/* Documents Grid/List */}
+                          {getCurrentCategoryDocuments(category.id).length === 0 ? (
+                            <Card>
+                              <CardContent className="text-center py-12">
+                                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                                <p className="text-muted-foreground">No {category.name.toLowerCase()} documents found</p>
+                              </CardContent>
+                            </Card>
+                          ) : viewMode === 'list' ? (
+                            <DocumentsDataTable 
+                              documents={getCurrentCategoryDocuments(category.id)} 
+                              onDocumentDeleted={loadDocuments}
+                            />
+                          ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {getCurrentCategoryDocuments(category.id).map((doc) => (
+                                <Card 
+                                  key={doc.doc_id} 
+                                  className="hover:shadow-md transition-shadow cursor-pointer"
+                                  onClick={() => handleViewPdf(doc.doc_id, doc.filename)}
+                                >
+                                  <CardContent className="p-4">
+                                    <div className="space-y-2">
+                                      <FileText className="h-5 w-5 text-muted-foreground" />
+                                      <div>
+                                        <p className="text-sm font-medium truncate">{doc.filename}</p>
+                                        <div className="flex items-center space-x-2 mt-1">
+                                          <Badge variant="outline" className="text-xs">
+                                            {doc.content_type.includes('pdf') ? 'PDF' : 'Word'}
+                                          </Badge>
+                                          <span className="text-xs text-muted-foreground">
+                                            {formatFileSize(doc.file_size)}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </SidebarInset>
+
+      {/* PDF Viewer Dialog */}
+      <Dialog open={pdfViewerModal.isOpen} onOpenChange={(open) => !open && setPdfViewerModal({ isOpen: false, docId: '', filename: '' })}>
+        <DialogContent className="!max-w-[95vw] !max-h-[95vh] !w-[95vw] !h-[95vh] p-0 gap-0 sm:!max-w-[95vw]">
+          <DialogTitle className="flex items-center justify-between p-4 border-b">
+            Document: {pdfViewerModal.filename}
+          </DialogTitle>
+          <div className="flex-1 h-full">
+            {pdfViewerModal.docId && (
+              <iframe
+                src={getPdfUrl(pdfViewerModal.docId)}
+                className="w-full h-full border-0"
+                title={`PDF Viewer - ${pdfViewerModal.filename}`}
+                style={{ height: 'calc(95vh - 60px)' }}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </SidebarProvider>
+  );
+}
