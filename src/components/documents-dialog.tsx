@@ -47,7 +47,8 @@ export function DocumentsDialog({
     }
   };
 
-  const isDocumentSelected = (docId: string) => {
+  const isDocumentSelected = (docId: string | undefined) => {
+    if (!docId) return false;
     return selectedDocuments.some(doc => doc.doc_id === docId);
   };
 
@@ -122,9 +123,9 @@ export function DocumentsDialog({
                   </Badge>
                 </div>
                 <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
-                  {selectedDocuments.map((doc) => (
+                  {selectedDocuments.map((doc, index) => (
                     <Badge 
-                      key={doc.doc_id} 
+                      key={doc.doc_id || doc.filename || `selected-doc-${index}`} 
                       variant="outline" 
                       className="text-xs"
                     >
@@ -151,8 +152,8 @@ export function DocumentsDialog({
                 </div>
               ) : (
                 <div className="h-full overflow-y-auto space-y-3 pr-2">
-                  {filteredDocuments.map((doc) => (
-                    <div key={doc.doc_id} className="flex items-center justify-between p-3 border border-border rounded-lg">
+                  {filteredDocuments.map((doc, index) => (
+                    <div key={doc.doc_id || `doc-${index}-${doc.filename}`} className="flex items-center justify-between p-3 border border-border rounded-lg">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{doc.filename}</p>
                         <div className="flex items-center space-x-2 mt-1">
@@ -171,6 +172,7 @@ export function DocumentsDialog({
                           size="sm"
                           onClick={() => onDocumentToggle(doc)}
                           className="text-xs flex-shrink-0"
+                          disabled={!doc.doc_id}
                         >
                           {isDocumentSelected(doc.doc_id) ? (
                             <>
@@ -188,12 +190,13 @@ export function DocumentsDialog({
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setDeleteModal({
+                          onClick={() => doc.doc_id && setDeleteModal({
                             isOpen: true,
                             docId: doc.doc_id,
                             filename: doc.filename,
                           })}
                           className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          disabled={!doc.doc_id}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

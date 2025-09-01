@@ -7,11 +7,12 @@ const api = axios.create({
 });
 
 export interface Document {
-  doc_id: string;
+  doc_id?: string;
   filename: string;
   content_type: string;
-  extraction_method: string;
+  extraction_method?: string;
   file_size: number;
+  created_at?: number;
 }
 
 export interface StreamEvent {
@@ -23,20 +24,32 @@ export interface QueryResponse {
   query: string;
   answer: string;
   sources: Array<{
+    type?: string;
     document_index?: number;
     filename?: string;
     relevance_score?: number;
     content_preview?: string;
     content?: string;
+    metadata?: any;
   }>;
+  image_sources?: Array<{
+    type: string;
+    content: string;
+    image_path?: string;
+    filename?: string;
+    metadata?: any;
+  }>;
+  metadata?: any;
   method: string;
 }
 
 export interface UploadResponse {
   message: string;
   doc_id: string;
-  extraction_method: string;
-  text_length: number;
+  extracted_images?: number;
+  total_documents?: number;
+  extraction_method?: string;
+  text_length?: number;
   status: string;
 }
 
@@ -134,6 +147,10 @@ export const apiService = {
   deleteDocument: async (docId: string) => {
     const response = await api.delete(`/delete-document/${docId}`);
     return response.data;
+  },
+
+  getImageUrl: (imagePath: string): string => {
+    return `${API_BASE_URL}/get-image/${imagePath}`;
   },
 };
 

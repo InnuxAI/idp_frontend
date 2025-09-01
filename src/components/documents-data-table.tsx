@@ -79,8 +79,8 @@ const getDocumentType = (filename: string) => {
   return documentCategories.find(cat => cat.id === category)?.name || 'Other';
 };
 
-const getPdfUrl = (docId: string) => {
-  return `http://localhost:8000/view-document/${docId}`;
+const getPdfUrl = (docId: string | undefined, filename: string) => {
+  return docId ? `http://localhost:8000/view-document/${docId}` : `http://localhost:8000/view-document/${filename}`;
 };
 
 const createColumns = (onDelete: (doc: Document) => void): ColumnDef<Document>[] => [
@@ -139,7 +139,7 @@ const createColumns = (onDelete: (doc: Document) => void): ColumnDef<Document>[]
             </SheetHeader>
             <div className="flex-1 h-full">
               <iframe
-                src={getPdfUrl(doc.doc_id)}
+                src={getPdfUrl(doc.doc_id, doc.filename)}
                 className="w-full h-full border-0"
                 title={`PDF Viewer - ${doc.filename}`}
                 style={{ height: 'calc(100vh - 80px)' }}
@@ -157,7 +157,7 @@ const createColumns = (onDelete: (doc: Document) => void): ColumnDef<Document>[]
     cell: ({ row }) => (
       <div className="w-20">
         <Badge variant="outline" className="text-xs">
-          {row.original.content_type.includes('pdf') ? 'PDF' : 'Word'}
+          {row.original.content_type && row.original.content_type.includes('pdf') ? 'PDF' : 'Word'}
         </Badge>
       </div>
     ),
@@ -247,7 +247,7 @@ export function DocumentsDataTable({ documents, onDocumentDeleted }: DocumentsDa
   const handleDeleteClick = (doc: Document) => {
     setDeleteModal({
       isOpen: true,
-      docId: doc.doc_id,
+      docId: doc.doc_id || doc.filename,
       filename: doc.filename,
     });
   };
