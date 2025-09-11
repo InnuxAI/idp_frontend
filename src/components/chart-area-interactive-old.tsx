@@ -33,93 +33,81 @@ import {
 import { fetchDashboardMetrics, DashboardMetrics } from "@/services/dashboardService"
 
 export const description = "Document Processing Analytics Chart"
+  { date: "2024-06-05", desktop: 88, mobile: 140 },
+  { date: "2024-06-06", desktop: 294, mobile: 250 },
+  { date: "2024-06-07", desktop: 323, mobile: 370 },
+  { date: "2024-06-08", desktop: 385, mobile: 320 },
+  { date: "2024-06-09", desktop: 438, mobile: 480 },
+  { date: "2024-06-10", desktop: 155, mobile: 200 },
+  { date: "2024-06-11", desktop: 92, mobile: 150 },
+  { date: "2024-06-12", desktop: 492, mobile: 420 },
+  { date: "2024-06-13", desktop: 81, mobile: 130 },
+  { date: "2024-06-14", desktop: 426, mobile: 380 },
+  { date: "2024-06-15", desktop: 307, mobile: 350 },
+  { date: "2024-06-16", desktop: 371, mobile: 310 },
+  { date: "2024-06-17", desktop: 475, mobile: 520 },
+  { date: "2024-06-18", desktop: 107, mobile: 170 },
+  { date: "2024-06-19", desktop: 341, mobile: 290 },
+  { date: "2024-06-20", desktop: 408, mobile: 450 },
+  { date: "2024-06-21", desktop: 169, mobile: 210 },
+  { date: "2024-06-22", desktop: 317, mobile: 270 },
+  { date: "2024-06-23", desktop: 480, mobile: 530 },
+  { date: "2024-06-24", desktop: 132, mobile: 180 },
+  { date: "2024-06-25", desktop: 141, mobile: 190 },
+  { date: "2024-06-26", desktop: 434, mobile: 380 },
+  { date: "2024-06-27", desktop: 448, mobile: 490 },
+  { date: "2024-06-28", desktop: 149, mobile: 200 },
+  { date: "2024-06-29", desktop: 103, mobile: 160 },
+  { date: "2024-06-30", desktop: 446, mobile: 400 },
+]
 
 const chartConfig = {
-  processed: {
-    label: "Total Processed",
-    color: "hsl(var(--chart-1))",
+  visitors: {
+    label: "Visitors",
   },
-  successful: {
-    label: "Successful",
-    color: "hsl(var(--chart-2))",
+  desktop: {
+    label: "Desktop",
+    color: "var(--primary)",
   },
-  failed: {
-    label: "Failed",
-    color: "hsl(var(--chart-3))",
+  mobile: {
+    label: "Mobile",
+    color: "var(--primary)",
   },
 } satisfies ChartConfig
 
 export function ChartAreaInteractive() {
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
-  const [timeRange, setTimeRange] = React.useState("30d")
   const isMobile = useIsMobile()
+  const [timeRange, setTimeRange] = React.useState("90d")
 
-  useEffect(() => {
-    const loadMetrics = async () => {
-      try {
-        const data = await fetchDashboardMetrics()
-        setMetrics(data)
-      } catch (error) {
-        console.error('Failed to load dashboard metrics:', error)
-      }
+  React.useEffect(() => {
+    if (isMobile) {
+      setTimeRange("7d")
     }
+  }, [isMobile])
 
-    loadMetrics()
-    // Refresh every 30 seconds
-    const interval = setInterval(loadMetrics, 30000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const filteredData = React.useMemo(() => {
-    if (!metrics?.chart_data) return []
-    
-    const now = new Date()
-    const days = timeRange === "30d" ? 30 : timeRange === "7d" ? 7 : 90
-    const startDate = new Date(now)
-    startDate.setDate(startDate.getDate() - days)
-    
-    return metrics.chart_data.filter((item) => {
-      const date = new Date(item.date)
-      return date >= startDate
-    })
-  }, [metrics?.chart_data, timeRange])
-
-  // Calculate totals for the selected period
-  const totals = React.useMemo(() => {
-    const total_processed = filteredData.reduce((sum, day) => sum + day.processed, 0)
-    const total_successful = filteredData.reduce((sum, day) => sum + day.successful, 0)
-    const total_failed = filteredData.reduce((sum, day) => sum + day.failed, 0)
-    
-    return { total_processed, total_successful, total_failed }
-  }, [filteredData])
-
-  if (!metrics) {
-    return (
-      <Card className="@container/card">
-        <CardHeader>
-          <CardTitle>Document Processing Analytics</CardTitle>
-          <CardDescription>Loading chart data...</CardDescription>
-        </CardHeader>
-        <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-          <div className="aspect-auto h-[250px] w-full flex items-center justify-center">
-            <div>Loading...</div>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
+  const filteredData = chartData.filter((item) => {
+    const date = new Date(item.date)
+    const referenceDate = new Date("2024-06-30")
+    let daysToSubtract = 90
+    if (timeRange === "30d") {
+      daysToSubtract = 30
+    } else if (timeRange === "7d") {
+      daysToSubtract = 7
+    }
+    const startDate = new Date(referenceDate)
+    startDate.setDate(startDate.getDate() - daysToSubtract)
+    return date >= startDate
+  })
 
   return (
     <Card className="@container/card">
       <CardHeader>
-        <CardTitle>Document Processing Analytics</CardTitle>
+        <CardTitle>Total Visitors</CardTitle>
         <CardDescription>
           <span className="hidden @[540px]/card:block">
-            {totals.total_processed} documents processed ({totals.total_successful} successful, {totals.total_failed} failed)
+            Total for the last 3 months
           </span>
-          <span className="@[540px]/card:hidden">
-            {totals.total_processed} processed
-          </span>
+          <span className="@[540px]/card:hidden">Last 3 months</span>
         </CardDescription>
         <CardAction>
           <ToggleGroup
@@ -139,7 +127,7 @@ export function ChartAreaInteractive() {
               size="sm"
               aria-label="Select a value"
             >
-              <SelectValue placeholder="Last 30 days" />
+              <SelectValue placeholder="Last 3 months" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
               <SelectItem value="90d" className="rounded-lg">
@@ -162,27 +150,27 @@ export function ChartAreaInteractive() {
         >
           <AreaChart data={filteredData}>
             <defs>
-              <linearGradient id="fillSuccessful" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-successful)"
+                  stopColor="var(--color-desktop)"
                   stopOpacity={1.0}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-successful)"
+                  stopColor="var(--color-desktop)"
                   stopOpacity={0.1}
                 />
               </linearGradient>
-              <linearGradient id="fillFailed" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-failed)"
+                  stopColor="var(--color-mobile)"
                   stopOpacity={0.8}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-failed)"
+                  stopColor="var(--color-mobile)"
                   stopOpacity={0.1}
                 />
               </linearGradient>
@@ -217,17 +205,17 @@ export function ChartAreaInteractive() {
               }
             />
             <Area
-              dataKey="failed"
+              dataKey="mobile"
               type="natural"
-              fill="url(#fillFailed)"
-              stroke="var(--color-failed)"
+              fill="url(#fillMobile)"
+              stroke="var(--color-mobile)"
               stackId="a"
             />
             <Area
-              dataKey="successful"
+              dataKey="desktop"
               type="natural"
-              fill="url(#fillSuccessful)"
-              stroke="var(--color-successful)"
+              fill="url(#fillDesktop)"
+              stroke="var(--color-desktop)"
               stackId="a"
             />
           </AreaChart>

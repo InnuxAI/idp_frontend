@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { apiService } from '@/services/api';
+import { validateFile, validateFileClientSide } from '@/services/fileValidation';
 
 interface UploadModalProps {
   open: boolean;
@@ -21,10 +22,29 @@ export function UploadModal({ open, onOpenChange, onUploadSuccess }: UploadModal
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Client-side validation first
+    const clientValidation = validateFileClientSide(file);
+    if (!clientValidation.valid) {
+      // Reset file input
+      event.target.value = '';
+      return;
+    }
+
     setIsUploading(true);
     setUploadProgress(0);
 
     try {
+      // Validate file on server before upload
+      const validation = await validateFile(file);
+      
+      if (!validation.valid) {
+        setIsUploading(false);
+        setUploadProgress(0);
+        // Reset file input
+        event.target.value = '';
+        return;
+      }
+
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => Math.min(prev + 10, 90));
       }, 200);

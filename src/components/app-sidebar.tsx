@@ -46,6 +46,16 @@ const data = {
       icon: IconDashboard,
     },
     {
+      title: "Field Extraction",
+      url: "/field-extraction",
+      icon: IconFileAi,
+    },
+    {
+      title: "Extraction Schemas",
+      url: "/extraction-schemas",
+      icon: IconDatabase,
+    },
+    {
       title: "Lifecycle",
       url: "#",
       icon: IconListDetails,
@@ -134,8 +144,13 @@ const data = {
   documents: [
     {
       name: "Data Library",
-      url: "#",
+      url: "/data-library",
       icon: IconDatabase,
+    },
+    {
+      name: "Field Extraction",
+      url: "/field-extraction",
+      icon: IconFileAi,
     },
     {
       name: "Reports",

@@ -53,6 +53,59 @@ export interface UploadResponse {
   status: string;
 }
 
+// Extraction interfaces
+export interface FieldDefinition {
+  name: string;
+  type: 'text' | 'number' | 'date' | 'boolean' | 'email' | 'url' | 'dropdown' | 'table';
+  label: string;
+  required?: boolean;
+  options?: string[];
+  description?: string;
+  tableColumns?: TableColumn[];
+}
+
+export interface TableColumn {
+  name: string;
+  label: string;
+  type: 'text' | 'number' | 'date' | 'boolean';
+}
+
+export interface Schema {
+  id: number;
+  json_name: string;
+  json_description?: string;
+  json_string: {
+    field_definitions: FieldDefinition[];
+  };
+  created_at: string;
+  field_count?: number;
+  required_field_count?: number;
+}
+
+export interface ExtractionResponse {
+  extraction_id: number;
+  extracted_data: Record<string, any>;
+  confidence_scores?: Record<string, number>;
+  processing_time?: number;
+}
+
+export interface DataLibraryEntry {
+  id: number;
+  schema_id: number;
+  schema_name: string;
+  filename: string;
+  pdf_path: string;
+  extracted_data: Record<string, any>;
+  is_approved: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DataLibraryResponse {
+  entries: DataLibraryEntry[];
+  total: number;
+}
+
 export const apiService = {
   healthCheck: async () => {
     const response = await api.get('/health');
@@ -151,6 +204,70 @@ export const apiService = {
 
   getImageUrl: (imagePath: string): string => {
     return `${API_BASE_URL}/get-image/${imagePath}`;
+  },
+
+  // Schema management
+  getSchemas: async () => {
+    const response = await api.get('/api/schemas/');
+    // Transform backend response to frontend format
+    return response.data.schemas.map((schema: any) => ({
+      id: schema.id,
+      name: schema.json_name,
+      description: schema.json_description,
+      fields: schema.json_string.field_definitions,
+      created_at: schema.created_at
+    }));
+  },
+
+  createSchema: async (schemaData: {
+    name: string;
+    description?: string;
+    field_definitions: FieldDefinition[];
+  }) => {
+    const response = await api.post('/api/schemas/', schemaData);
+    return response.data;
+  },
+
+  // Extraction methods
+  extractFieldsFromPdf: async (file: File, schemaId: number): Promise<ExtractionResponse> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('schema_id', schemaId.toString());
+
+    const response = await api.post('/api/extraction/json-extraction', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  getDataLibrary: async (schemaId?: number) => {
+    const params = schemaId ? { schema_id: schemaId } : {};
+    const response = await api.get('/api/extraction/data-library', { params });
+    return response.data;
+  },
+
+  getExtraction: async (extractionId: number): Promise<DataLibraryEntry> => {
+    const response = await api.get(`/api/extraction/data-library/${extractionId}`);
+    return response.data;
+  },
+
+  updateExtraction: async (extractionId: number, data: {
+    extracted_data: Record<string, any>;
+    is_approved?: boolean;
+  }): Promise<DataLibraryEntry> => {
+    const response = await api.put(`/api/extraction/data-library/${extractionId}`, data);
+    return response.data;
+  },
+
+  deleteExtraction: async (extractionId: number) => {
+    const response = await api.delete(`/api/extraction/data-library/${extractionId}`);
+    return response.data;
+  },
+
+  getPdfUrl: (extractionId: number): string => {
+    return `${API_BASE_URL}/api/extraction/pdf/${extractionId}`;
   },
 };
 

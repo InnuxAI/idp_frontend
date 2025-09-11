@@ -21,6 +21,7 @@ import {
   IconSun,
   IconMoon,
   IconDeviceDesktop,
+  IconFileAi,
 } from "@tabler/icons-react"
 
 import {
@@ -62,6 +63,18 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
           >
             <IconDashboard className="mr-2 h-4 w-4" />
             <span>Dashboard</span>
+          </CommandItem>
+          <CommandItem
+            onSelect={() => runCommand(() => router.push("/field-extraction"))}
+          >
+            <IconFileAi className="mr-2 h-4 w-4" />
+            <span>Field Extraction</span>
+          </CommandItem>
+          <CommandItem
+            onSelect={() => runCommand(() => router.push("/extraction-schemas"))}
+          >
+            <IconDatabase className="mr-2 h-4 w-4" />
+            <span>Extraction Schemas</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => router.push("/chat"))}

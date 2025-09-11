@@ -4,6 +4,7 @@ import "./globals.css";
 import { DocumentProvider } from "@/contexts/document-context";
 import { GlobalKeyboardShortcuts } from "@/components/global-keyboard-shortcuts";
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "sonner"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +40,7 @@ export default function RootLayout({
           <DocumentProvider>
             {children}
             <GlobalKeyboardShortcuts />
+            <Toaster />
           </DocumentProvider>
         </ThemeProvider>
       </body>

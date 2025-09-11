@@ -351,7 +351,7 @@ export default function DataLibraryPage() {
                                     whileHover={{ scale: 1.02, x: 4 }}
                                     whileTap={{ scale: 0.98 }}
                                     className="flex items-center justify-between p-3 border border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
-                                    onClick={() => handleViewPdf(doc.doc_id, doc.filename)}
+                                    onClick={() => handleViewPdf(doc.doc_id ?? '', doc.filename ?? 'Unknown')}
                                   >
                                     <div className="flex items-center space-x-3">
                                       <FileText className="h-5 w-5 text-muted-foreground" />
@@ -464,7 +464,7 @@ export default function DataLibraryPage() {
                                   >
                                     <Card 
                                       className="hover:shadow-md transition-shadow cursor-pointer"
-                                      onClick={() => handleViewPdf(doc.doc_id, doc.filename)}
+                                      onClick={() => handleViewPdf(doc.doc_id ?? '', doc.filename ?? 'Unknown')}
                                     >
                                       <CardContent className="p-4">
                                         <div className="space-y-2">
