@@ -22,6 +22,7 @@ import {
   IconMoon,
   IconDeviceDesktop,
   IconFileAi,
+  IconArrowsLeftRight,
 } from "@tabler/icons-react"
 
 import {
@@ -111,10 +112,10 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 
         <CommandGroup heading="Analytics">
           <CommandItem
-            onSelect={() => runCommand(() => router.push("#analytics"))}
+            onSelect={() => runCommand(() => router.push("/2_way_match"))}
           >
-            <IconChartBar className="mr-2 h-4 w-4" />
-            <span>Analytics</span>
+            <IconArrowsLeftRight className="mr-2 h-4 w-4" />
+            <span>Two-Way Match</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => router.push("#lifecycle"))}

@@ -106,6 +106,31 @@ export interface DataLibraryResponse {
   total: number;
 }
 
+export interface MatchResult {
+  item_in_inv: string;
+  matched_item_in_po: string;
+  confidence_score: number;
+  reasoning: string;
+}
+
+export interface TwoWayMatchResponse {
+  po_filename: string;
+  invoice_filename: string;
+  match_results: MatchResult[];
+  total_invoice_items: number;
+  matched_items: number;
+  unmatched_items: number;
+  processing_time?: number;
+}
+
+export interface ExtractionForMatching {
+  id: number;
+  filename: string;
+  schema_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export const apiService = {
   healthCheck: async () => {
     const response = await api.get('/health');
@@ -268,6 +293,20 @@ export const apiService = {
 
   getPdfUrl: (extractionId: number): string => {
     return `${API_BASE_URL}/api/extraction/pdf/${extractionId}`;
+  },
+
+  // Two-way match endpoints
+  getExtractionsForMatching: async () => {
+    const response = await api.get('/api/extractions/list');
+    return response.data;
+  },
+
+  performTwoWayMatch: async (poExtractionId: number, invoiceExtractionId: number) => {
+    const response = await api.post('/api/two-way-match', {
+      po_extraction_id: poExtractionId,
+      invoice_extraction_id: invoiceExtractionId
+    });
+    return response.data;
   },
 };
 

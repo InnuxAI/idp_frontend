@@ -21,6 +21,7 @@ export function NavMain({
     title: string
     url: string
     icon?: Icon
+    disabled?: boolean
   }[]
 }) {
   const router = useRouter()
@@ -52,12 +53,23 @@ export function NavMain({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title} asChild>
-                <a href={item.url}>
+              {item.disabled ? (
+                <SidebarMenuButton 
+                  tooltip={item.title}
+                  disabled={true}
+                  className="opacity-50 cursor-not-allowed"
+                >
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
-                </a>
-              </SidebarMenuButton>
+                </SidebarMenuButton>
+              ) : (
+                <SidebarMenuButton tooltip={item.title} asChild>
+                  <a href={item.url}>
+                    {item.icon && <item.icon />}
+                    <span>{item.title}</span>
+                  </a>
+                </SidebarMenuButton>
+              )}
             </SidebarMenuItem>
           ))}
           <SidebarMenuItem>

@@ -32,6 +32,7 @@ export function NavDocuments({
     name: string
     url: string
     icon: Icon
+    disabled?: boolean
   }[]
 }) {
   const { isMobile } = useSidebar()
@@ -42,41 +43,58 @@ export function NavDocuments({
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild>
-              <a href={item.name === 'Data Library' ? '/data-library' : item.url}>
-                <item.icon />
-                <span>{item.name}</span>
-              </a>
+            <SidebarMenuButton 
+              asChild={!item.disabled}
+              disabled={item.disabled}
+              className={item.disabled ? "opacity-50 cursor-not-allowed" : undefined}
+            >
+              {item.disabled ? (
+                <span className="flex items-center gap-2">
+                  <item.icon />
+                  <span>{item.name}</span>
+                </span>
+              ) : (
+                <a href={item.name === 'Data Library' ? '/data-library' : item.url}>
+                  <item.icon />
+                  <span>{item.name}</span>
+                </a>
+              )}
             </SidebarMenuButton>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger asChild disabled={item.disabled}>
                 <SidebarMenuAction
                   showOnHover
                   className="data-[state=open]:bg-accent rounded-sm"
+                  style={{ 
+                    visibility: item.disabled ? 'hidden' : 'visible',
+                    pointerEvents: item.disabled ? 'none' : 'auto'
+                  }}
                 >
                   <IconDots />
                   <span className="sr-only">More</span>
                 </SidebarMenuAction>
               </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-24 rounded-lg"
-                side={isMobile ? "bottom" : "right"}
-                align={isMobile ? "end" : "start"}
-              >
-                <DropdownMenuItem>
-                  <IconFolder />
-                  <span>Open</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <IconShare3 />
-                  <span>Share</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive">
-                  <IconTrash />
-                  <span>Delete</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
+              {!item.disabled && (
+                <DropdownMenuContent
+                  className="w-24 rounded-lg"
+                  side={isMobile ? "bottom" : "right"}
+                  align={isMobile ? "end" : "start"}
+                >
+                  <DropdownMenuItem>
+                    <IconFolder />
+                    <span>Open</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <IconShare3 />
+                    <span>Share</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem variant="destructive">
+                    <IconTrash />
+                    <span>Delete</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              )}
             </DropdownMenu>
           </SidebarMenuItem>
         ))}

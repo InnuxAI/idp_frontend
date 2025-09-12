@@ -56,24 +56,21 @@ const data = {
       icon: IconDatabase,
     },
     {
-      title: "Lifecycle",
-      url: "#",
-      icon: IconListDetails,
-    },
-    {
       title: "Analytics",
-      url: "#",
+      url: "/2_way_match",
       icon: IconChartBar,
     },
     {
       title: "Projects",
       url: "#",
       icon: IconFolder,
+      disabled: true,
     },
     {
       title: "Team",
       url: "#",
       icon: IconUsers,
+      disabled: true,
     },
   ],
   navClouds: [
@@ -156,14 +153,10 @@ const data = {
       name: "Reports",
       url: "#",
       icon: IconReport,
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: IconFileWord,
+      disabled: true,
     },
   ],
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { useEffect, useState } from "react"
 
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -165,24 +165,24 @@ export function ChartAreaInteractive() {
               <linearGradient id="fillSuccessful" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-successful)"
+                  stopColor="var(--color-chart-2)"
                   stopOpacity={1.0}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-successful)"
+                  stopColor="var(--color-chart-2)"
                   stopOpacity={0.1}
                 />
               </linearGradient>
               <linearGradient id="fillFailed" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-failed)"
+                  stopColor="var(--color-chart-3)"
                   stopOpacity={0.8}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-failed)"
+                  stopColor="var(--color-chart-3)"
                   stopOpacity={0.1}
                 />
               </linearGradient>
@@ -202,6 +202,12 @@ export function ChartAreaInteractive() {
                 })
               }}
             />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={(value) => value.toString()}
+            />
             <ChartTooltip
               cursor={false}
               content={
@@ -220,14 +226,18 @@ export function ChartAreaInteractive() {
               dataKey="failed"
               type="natural"
               fill="url(#fillFailed)"
-              stroke="var(--color-failed)"
+              stroke="var(--color-chart-3)"
+              strokeWidth={1}
+              strokeOpacity={0.8}
               stackId="a"
             />
             <Area
               dataKey="successful"
               type="natural"
               fill="url(#fillSuccessful)"
-              stroke="var(--color-successful)"
+              stroke="var(--color-chart-2)"
+              strokeWidth={1}
+              strokeOpacity={0.8}
               stackId="a"
             />
           </AreaChart>
