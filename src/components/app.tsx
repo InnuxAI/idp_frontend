@@ -12,8 +12,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { apiService } from '@/services/api';
 import type { Document, QueryResponse } from '@/services/api';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
 function App() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [query, setQuery] = useState('');
@@ -173,7 +171,7 @@ function App() {
   };
 
   const getPdfUrl = (docId: string) => {
-    return `${API_BASE_URL}/view-document/${docId}`;
+    return `http://localhost:8000/view-document/${docId}`;
   };
 
   return (
@@ -267,7 +265,7 @@ function App() {
                       <div key={doc.doc_id} className="flex items-center justify-between p-3 border border-border rounded-lg">
                         <div 
                           className={`flex-1 min-w-0 ${doc.content_type.includes('pdf') ? 'cursor-pointer hover:bg-muted/50 rounded p-2 -m-2' : ''}`}
-                          onClick={() => doc.content_type.includes('pdf') && handleViewPdf(doc.doc_id || '', doc.filename)}
+                          onClick={() => doc.content_type.includes('pdf') && doc.doc_id && handleViewPdf(doc.doc_id, doc.filename)}
                         >
                           <p className="text-sm font-medium truncate">{doc.filename}</p>
                           <div className="flex items-center space-x-2 mt-1">

@@ -222,7 +222,7 @@ export function ChatInteractive({
           contextualQuery,
           filename,
           3,
-          (event: StreamEvent) => {
+          async (event: StreamEvent) => {
             // Handle different event types
             if (event.type === 'response') {
               answer = event.content;
@@ -236,9 +236,27 @@ export function ChatInteractive({
               setStreamingEvents([...events]);
             }
 
-            if (event.type === 'sources') {
+            if (event.type === 'sources_file') {
               try {
-                // Check if content is already parsed or needs parsing
+                // Handle sources file - fetch it synchronously in the callback
+                const fileData = typeof event.content === 'string' ? JSON.parse(event.content) : event.content;
+                const fileUrl = fileData.url;
+                
+                // Fetch the sources file
+                const sourcesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${fileUrl}`);
+                if (sourcesResponse.ok) {
+                  const sourcesData = await sourcesResponse.json();
+                  sources = sourcesData.text_sources || [];
+                  imageSources = sourcesData.image_sources || [];
+                } else {
+                  console.error('Failed to fetch sources file:', sourcesResponse.status);
+                }
+              } catch (e) {
+                console.error('Failed to fetch sources from file:', e);
+              }
+            } else if (event.type === 'sources') {
+              try {
+                // Fallback for old sources format
                 let parsedContent;
                 if (typeof event.content === 'string') {
                   parsedContent = JSON.parse(event.content);
@@ -620,8 +638,11 @@ export function ChatInteractive({
                                 </div>
                                 {doc.metadata?.file_name && (
                                   <div className="flex items-center space-x-1">
-                                    <Badge variant="outline" className="text-xs truncate">
-                                      {doc.metadata.file_name.replace(/\.pdf.*$/, '.pdf')}
+                                    <Badge variant="outline" className="text-xs max-w-[180px] truncate">
+                                      {doc.metadata.file_name.length > 25 
+                                        ? `${doc.metadata.file_name.substring(0, 25)}...` 
+                                        : doc.metadata.file_name.replace(/\.pdf.*$/, '.pdf')
+                                      }
                                     </Badge>
                                     {doc.metadata?.page_label && (
                                       <Badge variant="outline" className="text-xs">
@@ -694,7 +715,10 @@ export function ChatInteractive({
                                     </p>
                                     {imageSource.metadata?.file_name && (
                                       <p className="text-white/70 text-xs truncate">
-                                        {imageSource.metadata.file_name.replace(/\.pdf.*$/, '.pdf')}
+                                        {imageSource.metadata.file_name.length > 20 
+                                          ? `${imageSource.metadata.file_name.substring(0, 20)}...` 
+                                          : imageSource.metadata.file_name.replace(/\.pdf.*$/, '.pdf')
+                                        }
                                       </p>
                                     )}
                                   </div>

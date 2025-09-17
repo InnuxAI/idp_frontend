@@ -221,12 +221,12 @@ export function ChatInteractive({
                       >
                         <span className="truncate max-w-[120px]">{doc.filename}</span>
                         {onRemoveDocument && (
-                          <Button
-                            onClick={() => onRemoveDocument(doc.doc_id || '')}
+                          <button
+                            onClick={() => doc.doc_id && onRemoveDocument(doc.doc_id)}
                             className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
                           >
                             <X className="h-3 w-3" />
-                          </Button>
+                          </button>
                         )}
                       </Badge>
                     </motion.div>

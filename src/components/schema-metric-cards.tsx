@@ -2,6 +2,8 @@
 import { IconSchema, IconCheck, IconClock, IconFileText } from "@tabler/icons-react"
 import { useEffect, useState } from "react"
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -31,12 +33,9 @@ interface SchemaMetrics {
   most_recent_schema: string;
   schemas: Schema[];
 }
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
 async function fetchSchemaMetrics(): Promise<SchemaMetrics> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/schemas/`);
+        const response = await fetch(`${API_BASE_URL}/api/schemas/`);
     if (!response.ok) throw new Error('Failed to fetch schemas');
     
     const data = await response.json();

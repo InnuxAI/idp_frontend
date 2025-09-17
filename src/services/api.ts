@@ -17,7 +17,7 @@ export interface Document {
 
 export interface StreamEvent {
   type: string;
-  content: string;
+  content: string | any;
 }
 
 export interface QueryResponse {
@@ -168,7 +168,7 @@ export const apiService = {
     query: string,
     filename: string | null = null,
     topK: number = 3,
-    onEvent: (event: StreamEvent) => void
+    onEvent: (event: StreamEvent) => Promise<void> | void
   ): Promise<void> => {
     const response = await fetch(`${API_BASE_URL}/query-documents-stream`, {
       method: 'POST',
@@ -205,7 +205,7 @@ export const apiService = {
           if (line.startsWith('data: ')) {
             try {
               const eventData = JSON.parse(line.slice(6));
-              onEvent(eventData);
+              await onEvent(eventData);
             } catch (e) {
               console.warn('Failed to parse SSE data:', line);
             }
@@ -229,6 +229,12 @@ export const apiService = {
 
   getImageUrl: (imagePath: string): string => {
     return `${API_BASE_URL}/get-image/${imagePath}`;
+  },
+
+  // Get temporary sources file
+  getTempSources: async (fileId: string) => {
+    const response = await api.get(`/get-temp-sources/${fileId}`);
+    return response.data;
   },
 
   // Schema management
