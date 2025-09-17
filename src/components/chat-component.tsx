@@ -110,7 +110,7 @@ export function ChatComponent({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onRemoveDocument(doc.doc_id)}
+                        onClick={() => onRemoveDocument(doc.doc_id || '')}
                         className="h-4 w-4 p-0 hover:bg-destructive/20 ml-1"
                       >
                         <X className="h-3 w-3" />

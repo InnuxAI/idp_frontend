@@ -1,10 +1,5 @@
-import App from "@/components/app";
-import {ChatComponent} from "@/components/chat-component";
+import SignupPage from './signup/page'
 
 export default function Home() {
-  return (
-    <>
-      <App />
-    </>
-  );
+  return <SignupPage />
 }

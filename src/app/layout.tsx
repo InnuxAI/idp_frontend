@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { DocumentProvider } from "@/contexts/document-context";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { GlobalKeyboardShortcuts } from "@/components/global-keyboard-shortcuts";
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "sonner"
@@ -37,11 +38,13 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <DocumentProvider>
-            {children}
-            <GlobalKeyboardShortcuts />
-            <Toaster />
-          </DocumentProvider>
+          <AuthProvider>
+            <DocumentProvider>
+              {children}
+              <GlobalKeyboardShortcuts />
+              <Toaster />
+            </DocumentProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

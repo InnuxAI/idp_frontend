@@ -265,7 +265,7 @@ function App() {
                       <div key={doc.doc_id} className="flex items-center justify-between p-3 border border-border rounded-lg">
                         <div 
                           className={`flex-1 min-w-0 ${doc.content_type.includes('pdf') ? 'cursor-pointer hover:bg-muted/50 rounded p-2 -m-2' : ''}`}
-                          onClick={() => doc.content_type.includes('pdf') && handleViewPdf(doc.doc_id, doc.filename)}
+                          onClick={() => doc.content_type.includes('pdf') && handleViewPdf(doc.doc_id || '', doc.filename)}
                         >
                           <p className="text-sm font-medium truncate">{doc.filename}</p>
                           <div className="flex items-center space-x-2 mt-1">
@@ -284,12 +284,12 @@ function App() {
                         <div className="flex items-center space-x-2">
                           {/* Add to Context Button */}
                           <Button
-                            variant={isDocumentInContext(doc.doc_id) ? "default" : "outline"}
+                            variant={isDocumentInContext(doc.doc_id || '') ? "default" : "outline"}
                             size="sm"
                             onClick={() => toggleDocumentInContext(doc)}
                             className="text-xs"
                           >
-                            {isDocumentInContext(doc.doc_id) ? (
+                            {isDocumentInContext(doc.doc_id || '') ? (
                               <>
                                 <X className="h-3 w-3 " />
                               </>
@@ -306,7 +306,7 @@ function App() {
                             size="icon"
                             onClick={() => setDeleteModal({
                               isOpen: true,
-                              docId: doc.doc_id,
+                              docId: doc.doc_id || '',
                               filename: doc.filename,
                             })}
                             className="text-destructive hover:text-destructive hover:bg-destructive/10"
@@ -372,7 +372,7 @@ function App() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => removeDocumentFromContext(doc.doc_id)}
+                            onClick={() => removeDocumentFromContext(doc.doc_id || '')}
                             className="h-4 w-4 p-0 hover:bg-destructive/20 ml-1"
                           >
                             <X className="h-3 w-3" />

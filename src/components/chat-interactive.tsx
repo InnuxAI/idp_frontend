@@ -129,14 +129,14 @@ const CollapsibleContext: React.FC<CollapsibleContextProps> = ({
                       <span className="truncate max-w-[120px]">
                         {doc.filename}
                       </span>
-                      <button
+                      <Button
                         onClick={() =>
                           onRemoveDocument?.(doc.doc_id || doc.filename)
                         }
                         className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
                       >
                         <X className="h-3 w-3" />
-                      </button>
+                      </Button>
                     </Badge>
                   </motion.div>
                 ))}
@@ -423,12 +423,12 @@ export function ChatInteractive({
                         className="text-xs flex items-center space-x-1 pr-1"
                       >
                         <span className="truncate max-w-[120px]">{doc.filename}</span>
-                        <button
+                        <Button
                           onClick={() => handleRemoveDocument(doc.doc_id || doc.filename)}
                           className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
                         >
                           <X className="h-3 w-3" />
-                        </button>
+                        </Button>
                       </Badge>
                     </motion.div>
                   ))}
@@ -549,7 +549,7 @@ export function ChatInteractive({
                       
                       {/* Sources sub-tab switcher */}
                       <div className="flex bg-muted rounded-md p-1">
-                        <button
+                        <Button
                           onClick={() => setSourcesSubTab('text')}
                           className={`p-1.5 rounded-sm transition-colors ${
                             sourcesSubTab === 'text' 
@@ -558,8 +558,8 @@ export function ChatInteractive({
                           }`}
                         >
                           <FileText className="h-4 w-4" />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           onClick={() => setSourcesSubTab('images')}
                           className={`p-1.5 rounded-sm transition-colors ${
                             sourcesSubTab === 'images' 
@@ -568,7 +568,7 @@ export function ChatInteractive({
                           }`}
                         >
                           <FileImage className="h-4 w-4" />
-                        </button>
+                        </Button>
                       </div>
                     </div>
                     

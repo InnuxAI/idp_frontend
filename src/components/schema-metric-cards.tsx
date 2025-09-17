@@ -32,9 +32,11 @@ interface SchemaMetrics {
   schemas: Schema[];
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 async function fetchSchemaMetrics(): Promise<SchemaMetrics> {
   try {
-    const response = await fetch('http://localhost:8000/api/schemas/');
+    const response = await fetch(`${API_BASE_URL}/api/schemas/`);
     if (!response.ok) throw new Error('Failed to fetch schemas');
     
     const data = await response.json();
