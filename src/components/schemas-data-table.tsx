@@ -61,6 +61,8 @@ interface Schema {
   required_field_count: number;
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export function SchemasDataTable() {
   const router = useRouter()
   const [schemas, setSchemas] = useState<Schema[]>([])
@@ -73,7 +75,7 @@ export function SchemasDataTable() {
     const fetchSchemas = async () => {
       try {
         setLoading(true)
-        const response = await fetch('http://localhost:8000/api/schemas/')
+        const response = await fetch(`${API_BASE_URL}/api/schemas/`)
         if (!response.ok) throw new Error('Failed to fetch schemas')
         
         const data = await response.json()

@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { apiService } from '@/services/api';
 import type { Document, QueryResponse } from '@/services/api';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 function App() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [query, setQuery] = useState('');
@@ -171,7 +173,7 @@ function App() {
   };
 
   const getPdfUrl = (docId: string) => {
-    return `http://localhost:8000/view-document/${docId}`;
+    return `${API_BASE_URL}/view-document/${docId}`;
   };
 
   return (

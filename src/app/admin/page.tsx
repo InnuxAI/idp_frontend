@@ -42,6 +42,8 @@ interface User {
   created_at: string
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function AdminPanel() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
@@ -54,7 +56,7 @@ export default function AdminPanel() {
   const fetchUsers = async () => {
     try {
       const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token')
-      const response = await fetch('http://localhost:8000/api/v1/auth/admin/users', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/admin/users`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -78,7 +80,7 @@ export default function AdminPanel() {
   const approveUser = async (userId: string) => {
     try {
       const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token')
-      const response = await fetch(`http://localhost:8000/api/v1/auth/admin/approve-user/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/admin/approve-user/${userId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -101,7 +103,7 @@ export default function AdminPanel() {
   const rejectUser = async (userId: string) => {
     try {
       const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token')
-      const response = await fetch(`http://localhost:8000/api/v1/auth/admin/reject-user/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/admin/reject-user/${userId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -124,7 +126,7 @@ export default function AdminPanel() {
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
       const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token')
-      const response = await fetch(`http://localhost:8000/api/v1/auth/admin/update-user-role/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/admin/update-user-role/${userId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -155,7 +157,7 @@ export default function AdminPanel() {
 
     try {
       const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token')
-      const response = await fetch(`http://localhost:8000/api/v1/auth/admin/delete-user/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/admin/delete-user/${userId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

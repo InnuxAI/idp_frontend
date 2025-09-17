@@ -19,6 +19,8 @@ import {
 import { apiService, Document } from '@/services/api';
 import { documentCategories, categorizeDocument, getCategoryColor, getCategoryById } from '@/lib/document-categories';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function DataLibraryPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,7 +86,7 @@ export default function DataLibraryPage() {
   };
 
   const getPdfUrl = (docId: string) => {
-    return `http://localhost:8000/view-document/${docId}`;
+    return `${API_BASE_URL}/view-document/${docId}`;
   };
 
   return (

@@ -79,8 +79,10 @@ const getDocumentType = (filename: string) => {
   return documentCategories.find(cat => cat.id === category)?.name || 'Other';
 };
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 const getPdfUrl = (docId: string | undefined, filename: string) => {
-  return docId ? `http://localhost:8000/view-document/${docId}` : `http://localhost:8000/view-document/${filename}`;
+  return docId ? `${API_BASE_URL}/view-document/${docId}` : `${API_BASE_URL}/view-document/${filename}`;
 };
 
 const createColumns = (onDelete: (doc: Document) => void): ColumnDef<Document>[] => [

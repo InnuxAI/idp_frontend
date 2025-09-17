@@ -70,6 +70,8 @@ interface UploadedFile {
   extractionId?: number; // Add extraction ID from backend
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export function FieldExtractionComponent() {
   const [activeTab, setActiveTab] = useState<'define' | 'upload' | 'results' | 'library'>('define');
   const [fieldDefinitions, setFieldDefinitions] = useState<FieldDefinition[]>([]);
@@ -297,7 +299,7 @@ export function FieldExtractionComponent() {
 
     setIsSaving(true);
     try {
-      const response = await fetch('http://localhost:8000/api/schemas/', {
+      const response = await fetch(`${API_BASE_URL}/api/schemas/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
