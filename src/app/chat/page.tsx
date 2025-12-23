@@ -1,7 +1,7 @@
 "use client"
 
 import { AppSidebar } from "@/components/app-sidebar"
-import { ChatInteractive } from "@/components/chat-interactive"
+import { ChatInteractive } from "@/components/chat-timeline" // Import from NEW file
 import { SiteHeader } from "@/components/site-header"
 import {
   SidebarInset,
@@ -24,17 +24,12 @@ export default function ChatPage() {
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader />
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              <div className="px-4 lg:px-6">
-                <ChatInteractive 
-                  selectedDocuments={selectedDocuments}
-                  onRemoveDocument={removeDocument}
-                />
-              </div>
-            </div>
-          </div>
+        {/* Full height container with no padding for the App Shell feel */}
+        <div className="relative flex flex-1 flex-col overflow-hidden">
+          <ChatInteractive
+            selectedDocuments={selectedDocuments}
+            onRemoveDocument={removeDocument}
+          />
         </div>
       </SidebarInset>
     </SidebarProvider>

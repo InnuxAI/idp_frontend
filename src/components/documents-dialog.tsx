@@ -17,10 +17,10 @@ interface DocumentsDialogProps {
   onDocumentDeleted?: () => void; // Callback when a document is deleted
 }
 
-export function DocumentsDialog({ 
-  open, 
-  onOpenChange, 
-  selectedDocuments, 
+export function DocumentsDialog({
+  open,
+  onOpenChange,
+  selectedDocuments = [],
   onDocumentToggle,
   onDocumentDeleted
 }: DocumentsDialogProps) {
@@ -86,7 +86,7 @@ export function DocumentsDialog({
             <span>Select Documents for Context</span>
           </DialogTitle>
         </DialogHeader>
-        
+
         <Card className="h-[500px] flex flex-col">
           <CardHeader className="flex-shrink-0">
             <CardTitle className="flex items-center justify-between">
@@ -112,7 +112,7 @@ export function DocumentsDialog({
                 />
               </div>
             )}
-            
+
             {/* Selected Documents Summary */}
             {selectedDocuments.length > 0 && (
               <div className="border rounded-lg p-3 bg-muted/30 flex-shrink-0 max-h-24">
@@ -124,9 +124,9 @@ export function DocumentsDialog({
                 </div>
                 <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
                   {selectedDocuments.map((doc, index) => (
-                    <Badge 
-                      key={doc.doc_id || doc.filename || `selected-doc-${index}`} 
-                      variant="outline" 
+                    <Badge
+                      key={doc.doc_id || doc.filename || `selected-doc-${index}`}
+                      variant="outline"
                       className="text-xs"
                     >
                       {doc.filename}
@@ -135,7 +135,7 @@ export function DocumentsDialog({
                 </div>
               </div>
             )}
-            
+
             {/* Documents List - Fixed height container */}
             <div className="flex-1 min-h-0 min-h-[250px]">
               {documents.length === 0 ? (
@@ -165,7 +165,7 @@ export function DocumentsDialog({
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center space-x-2">
                         <Button
                           variant={isDocumentSelected(doc.doc_id) ? "default" : "outline"}
@@ -186,7 +186,7 @@ export function DocumentsDialog({
                             </>
                           )}
                         </Button>
-                        
+
                         <Button
                           variant="ghost"
                           size="sm"

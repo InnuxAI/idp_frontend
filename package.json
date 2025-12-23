@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbopack -p 3000",
     "build": "next build --turbopack",
-    "start": "next start",
+    "start": "next start -p 3000",
     "lint": "eslint"
   },
   "dependencies": {
@@ -34,6 +34,7 @@
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/react-table": "^8.21.3",
     "@types/express": "^5.0.3",
+    "@types/uuid": "^10.0.0",
     "axios": "^1.11.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -58,6 +59,7 @@
     "survey-react-ui": "^2.3.4",
     "tailwind-merge": "^3.3.1",
     "three": "^0.180.0",
+    "uuid": "^13.0.0",
     "vaul": "^1.1.2",
     "zod": "^3.23.8"
   },
