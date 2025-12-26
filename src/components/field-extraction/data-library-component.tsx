@@ -2,17 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { 
+import {
   Library,
-  FileText, 
-  Eye, 
-  Download, 
+  FileText,
+  Eye,
+  Download,
   Trash2,
   Search,
   Filter,
   Calendar,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  FileJson
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +24,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { apiService, DataLibraryEntry, DataLibraryResponse } from '@/services/api';
+import { ExtractionViewerModal } from './extraction-viewer-modal';
 
 export function DataLibraryComponent() {
   const [entries, setEntries] = useState<DataLibraryEntry[]>([]);
@@ -32,6 +34,7 @@ export function DataLibraryComponent() {
   const [selectedEntry, setSelectedEntry] = useState<DataLibraryEntry | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletingEntry, setDeletingEntry] = useState<DataLibraryEntry | null>(null);
+  const [viewingExtractionId, setViewingExtractionId] = useState<number | null>(null);
 
   useEffect(() => {
     loadDataLibrary();
@@ -77,7 +80,7 @@ export function DataLibraryComponent() {
 
   const filteredEntries = entries.filter(entry => {
     const matchesSearch = entry.filename.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         entry.schema_name.toLowerCase().includes(searchTerm.toLowerCase());
+      entry.schema_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSchema = filterSchema === 'all' || entry.schema_name === filterSchema;
     return matchesSearch && matchesSchema;
   });
@@ -156,7 +159,7 @@ export function DataLibraryComponent() {
               <Library className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-lg font-medium">No extractions found</p>
               <p className="text-muted-foreground">
-                {entries.length === 0 
+                {entries.length === 0
                   ? "Start by creating a schema and extracting data from PDFs."
                   : "Try adjusting your search or filter criteria."
                 }
@@ -188,9 +191,9 @@ export function DataLibraryComponent() {
                         <Badge variant="outline">{entry.schema_name}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge 
-                            variant="default" 
-                            className={entry.is_approved ? "bg-green-500 text-black" : "bg-blue-500 text-black"}
+                        <Badge
+                          variant="default"
+                          className={entry.is_approved ? "bg-green-500 text-black" : "bg-blue-500 text-black"}
                         >
                           {entry.is_approved ? (
                             <>
@@ -217,8 +220,17 @@ export function DataLibraryComponent() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleViewPdf(entry)}
+                            title="View PDF"
                           >
                             <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setViewingExtractionId(entry.id)}
+                            title="View Extracted Data"
+                          >
+                            <FileJson className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -255,7 +267,7 @@ export function DataLibraryComponent() {
               Delete Extraction
             </DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete the extraction for "{deletingEntry?.filename}"? 
+              Are you sure you want to delete the extraction for "{deletingEntry?.filename}"?
               This action cannot be undone and will permanently remove the PDF file and all extracted data.
             </DialogDescription>
           </DialogHeader>
@@ -276,21 +288,12 @@ export function DataLibraryComponent() {
         </DialogContent>
       </Dialog>
 
-      {/* Data Preview Dialog */}
-      {selectedEntry && (
-        <Dialog open={!!selectedEntry} onOpenChange={() => setSelectedEntry(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Extracted Data - {selectedEntry.filename}</DialogTitle>
-            </DialogHeader>
-            <div className="max-h-96 overflow-auto">
-              <pre className="text-sm bg-muted p-4 rounded-md">
-                {JSON.stringify(selectedEntry.extracted_data, null, 2)}
-              </pre>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+      <ExtractionViewerModal
+        isOpen={!!viewingExtractionId}
+        onClose={() => setViewingExtractionId(null)}
+        extractionId={viewingExtractionId}
+        onUpdate={loadDataLibrary}
+      />
     </div>
   );
 }

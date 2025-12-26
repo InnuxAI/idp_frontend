@@ -96,6 +96,9 @@ export interface DataLibraryEntry {
   filename: string;
   pdf_path: string;
   extracted_data: Record<string, any>;
+  schema_definition?: {
+    field_definitions: FieldDefinition[];
+  };
   is_approved: boolean;
   created_at: string;
   updated_at: string;

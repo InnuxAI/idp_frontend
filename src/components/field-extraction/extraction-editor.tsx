@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { 
-  Save, 
-  Edit3, 
-  Check, 
-  X, 
-  FileText, 
+import {
+  Save,
+  Edit3,
+  Check,
+  X,
+  FileText,
   Eye,
   Download,
   Trash2,
@@ -36,6 +36,7 @@ interface ExtractionEditorProps {
   onUpdate?: (updatedData: Record<string, any>) => void;
   onApprove?: () => void;
   onDelete?: () => void;
+  isApproved?: boolean;
 }
 
 export function ExtractionEditor({
@@ -45,7 +46,8 @@ export function ExtractionEditor({
   filename,
   onUpdate,
   onApprove,
-  onDelete
+  onDelete,
+  isApproved = false
 }: ExtractionEditorProps) {
   const [extractedData, setExtractedData] = useState<Record<string, any>>(initialData);
   const [isEditing, setIsEditing] = useState(false);
@@ -58,6 +60,9 @@ export function ExtractionEditor({
   useEffect(() => {
     setExtractedData(initialData);
   }, [initialData]);
+
+  // If no fields are passed, we can't render much (maybe just JSON view)
+  const hasFields = fieldDefinitions && fieldDefinitions.length > 0;
 
   const handleFieldChange = (fieldName: string, value: any) => {
     setExtractedData(prev => ({
@@ -118,7 +123,7 @@ export function ExtractionEditor({
 
   const renderField = (field: FieldDefinition) => {
     const value = extractedData[field.name];
-    
+
     if (!isEditing) {
       return (
         <div key={field.name} className="space-y-2">
@@ -299,16 +304,16 @@ export function ExtractionEditor({
               {fieldDefinitions.map(renderField)}
             </div>
           )}
-          
+
           {/* Complete Extracted Data Viewer */}
           <div className={isEditing ? "pt-4 border-t" : ""}>
-            <DynamicJsonRenderer 
+            <DynamicJsonRenderer
               data={extractedData}
               title="Complete Extracted Data"
               className="w-full"
             />
           </div>
-          
+
           {isEditing && (
             <div className="flex items-center justify-between pt-4 border-t">
               <Button
@@ -336,8 +341,8 @@ export function ExtractionEditor({
               </div>
             </div>
           )}
-          
-          {!isEditing && (
+
+          {!isEditing && !isApproved && (
             <div className="flex items-center justify-end pt-4 border-t">
               <Button
                 onClick={handleApprove}
