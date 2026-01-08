@@ -5,5 +5,5 @@
 import { redirect } from 'next/navigation'
 
 export default function ChatPage() {
-    redirect('/chat/v2')
+    redirect('/chat/v1')
 }
