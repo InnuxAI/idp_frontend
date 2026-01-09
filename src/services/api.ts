@@ -89,6 +89,9 @@ export interface ExtractionResponse {
   processing_time?: number;
 }
 
+// Extraction status enum
+export type ExtractionStatus = 'PENDING' | 'PROCESSING' | 'AWAITING_APPROVAL' | 'APPROVED' | 'FAILED';
+
 export interface DataLibraryEntry {
   id: number;
   schema_id: number;
@@ -99,7 +102,9 @@ export interface DataLibraryEntry {
   schema_definition?: {
     field_definitions: FieldDefinition[];
   };
-  is_approved: boolean;
+  is_approved: boolean;  // Keep for backward compat
+  status: ExtractionStatus;
+  error_message?: string;
   created_at: string;
   updated_at: string;
 }

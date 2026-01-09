@@ -2,14 +2,14 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Upload, 
-  FileText, 
-  Settings, 
-  Eye, 
-  Download, 
-  Plus, 
-  X, 
+import {
+  Upload,
+  FileText,
+  Settings,
+  Eye,
+  Download,
+  Plus,
+  X,
   Save,
   Type,
   Hash,
@@ -81,7 +81,7 @@ export function FieldExtractionComponent() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [surveyJson, setSurveyJson] = useState<any>(null);
   const [currentSchemaId, setCurrentSchemaId] = useState<number | null>(null); // Add schema ID state
-  
+
   // Save schema dialog state
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [schemaName, setSchemaName] = useState('');
@@ -102,7 +102,7 @@ export function FieldExtractionComponent() {
         type: mapSurveyTypeToFieldType(element.type),
         label: element.title || element.name,
         required: element.isRequired || false,
-        options: element.choices?.map((choice: any) => 
+        options: element.choices?.map((choice: any) =>
           typeof choice === 'string' ? choice : choice.value || choice.text
         ),
         description: element.description
@@ -162,7 +162,7 @@ export function FieldExtractionComponent() {
 
     // Use selected schema ID if available, otherwise use current schema ID (from define tab)
     const schemaToUse = selectedSchemaId || currentSchemaId;
-    
+
     if (!schemaToUse) {
       toast.error('Please save the schema first or select an existing schema before uploading files');
       return;
@@ -183,23 +183,23 @@ export function FieldExtractionComponent() {
 
       try {
         // Update progress to show upload started
-        setUploadedFiles(prev => 
+        setUploadedFiles(prev =>
           prev.map(f => f.id === fileId ? { ...f, progress: 20 } : f)
         );
 
         // Call real API for field extraction
         const extractionResponse = await apiService.extractFieldsFromPdf(file, schemaToUse);
-        
+
         // Update progress
-        setUploadedFiles(prev => 
+        setUploadedFiles(prev =>
           prev.map(f => f.id === fileId ? { ...f, progress: 100 } : f)
         );
 
         // Update with results
-        setUploadedFiles(prev => 
-          prev.map(f => f.id === fileId ? { 
-            ...f, 
-            status: 'completed', 
+        setUploadedFiles(prev =>
+          prev.map(f => f.id === fileId ? {
+            ...f,
+            status: 'completed',
             results: extractionResponse.extracted_data,
             extractionId: extractionResponse.extraction_id
           } : f)
@@ -207,10 +207,10 @@ export function FieldExtractionComponent() {
 
       } catch (error) {
         console.error('File processing error:', error);
-        setUploadedFiles(prev => 
+        setUploadedFiles(prev =>
           prev.map(f => f.id === fileId ? { ...f, status: 'error' } : f)
         );
-        
+
         // Show error to user
         toast.error(`Error processing ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
@@ -223,13 +223,13 @@ export function FieldExtractionComponent() {
   const processFileWithFields = async (file: File, fields: FieldDefinition[]): Promise<ExtractionResult> => {
     // Mock implementation - in real scenario, this would call the backend API
     // with the file and field definitions
-    
+
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     // Mock extracted data based on field definitions
     const mockResults: ExtractionResult = {};
-    
+
     fields.forEach(field => {
       switch (field.type) {
         case 'text':
@@ -318,18 +318,18 @@ export function FieldExtractionComponent() {
 
       const savedSchema = await response.json();
       console.log('Schema saved successfully:', savedSchema);
-      
+
       // Set the current schema ID so we can use it for extractions
       setCurrentSchemaId(savedSchema.id);
-      
+
       // Reset dialog state
       setSchemaName('');
       setSchemaDescription('');
       setShowSaveDialog(false);
-      
+
       // Show success message
       toast.success('Schema saved successfully! You can now upload files for extraction.');
-      
+
     } catch (error) {
       console.error('Error saving schema:', error);
       toast.error(`Error saving schema: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -342,186 +342,133 @@ export function FieldExtractionComponent() {
   const hasResults = uploadedFiles.some(f => f.status === 'completed');
 
   return (
-    <div className="w-full space-y-8">
-      {/* Progress Steps */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="flex items-center justify-center space-x-4"
-      >
-          <button
-            onClick={() => setActiveTab('define')}
-            className={`flex items-center space-x-2 px-2 py-2 rounded-full transition-all duration-300 ${
-              activeTab === 'define' 
-                ? 'bg-primary text-primary-foreground shadow-lg scale-105' 
-                : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-            }`}
+    <div className="w-full space-y-8 animate-in fade-in duration-500">
+      {/* Header & Stepper Section */}
+      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pb-6 border-b border-border/40">
+        <div className="space-y-2">
+          <motion.h1
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="text-4xl font-serif font-medium tracking-tight text-foreground"
           >
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              activeTab === 'define' ? 'bg-primary-foreground text-primary' : 'bg-muted-foreground text-background'
-            }`}>
-              <Settings className="h-4 w-4" />
-            </div>
-            <span className="font-semibold">Define Fields</span>
-          </button>
-          
-          <div className="h-px w-12 bg-border" />
-          
-          <button
-            onClick={() => setActiveTab('upload')}
-            className={`flex items-center space-x-2 px-2 py-2 rounded-full transition-all duration-300 ${
-              activeTab === 'upload' 
-                ? 'bg-primary text-primary-foreground shadow-lg scale-105' 
-                : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-            }`}
+            Field Extraction
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-muted-foreground text-lg max-w-2xl"
           >
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              activeTab === 'upload' ? 'bg-primary-foreground text-primary' : 'bg-muted-foreground text-background'
-            }`}>
-              <Upload className="h-4 w-4" />
-            </div>
-            <span className="font-semibold">Upload Files</span>
-          </button>
-          
-          <div className="h-px w-12 bg-border" />
-          
-          <button
-            onClick={() => setActiveTab('results')}
-            className={`flex items-center space-x-2 px-2 py-2 rounded-full transition-all duration-300 ${
-              activeTab === 'results' 
-                ? 'bg-primary text-primary-foreground shadow-lg scale-105' 
-                : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-            }`}
-          >
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              activeTab === 'results' ? 'bg-primary-foreground text-primary' : 'bg-muted-foreground text-background'
-            }`}>
-              <Eye className="h-4 w-4" />
-            </div>
-            <span className="font-semibold">View Results</span>
-          </button>
-          
-          <div className="h-px w-12 bg-border" />
-          
-          <button
-            onClick={() => setActiveTab('library')}
-            className={`flex items-center space-x-2 px-2 py-2 rounded-full transition-all duration-300 ${
-              activeTab === 'library' 
-                ? 'bg-primary text-primary-foreground shadow-lg scale-105' 
-                : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-            }`}
-          >
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              activeTab === 'library' ? 'bg-primary-foreground text-primary' : 'bg-muted-foreground text-background'
-            }`}>
-              <Database className="h-4 w-4" />
-            </div>
-            <span className="font-semibold">Data Library</span>
-          </button>
+            Define fields, upload documents, and extract structured data with precision.
+          </motion.p>
+        </div>
+
+        {/* Integrated Stepper */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className="flex items-center space-x-1 bg-zinc-200 dark:bg-zinc-800 p-1.5 rounded-full border border-border self-start xl:self-auto"
+        >
+          {[
+            { id: 'define', icon: Settings, label: 'Define' },
+            { id: 'upload', icon: Upload, label: 'Upload' },
+            { id: 'results', icon: Eye, label: 'Results' },
+            { id: 'library', icon: Database, label: 'Library' }
+          ].map((step) => {
+            const isActive = activeTab === step.id;
+            return (
+              <button
+                key={step.id}
+                onClick={() => setActiveTab(step.id as any)}
+                className={`
+                    relative flex items-center space-x-2 px-5 py-2.5 rounded-full transition-all duration-500 ease-out shadow-sm shadow-border dark:shadow-sm dark:shadow-border
+                    ${isActive ? 'text-primary-foreground' : 'text-muted-foreground bg-muted/50 hover:bg-muted hover:text-foreground dark:hover:bg-zinc-700'}
+                  `}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="activeTabBackground"
+                    className="absolute inset-0 bg-primary rounded-full"
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                  />
+                )}
+                <div className="relative z-10 flex items-center space-x-2">
+                  <step.icon className="h-4 w-4" />
+                  <span className={`text-sm font-medium  ${isActive ? 'font-semibold' : ''}`}>{step.label}</span>
+                </div>
+              </button>
+            );
+          })}
         </motion.div>
+      </div>
 
-        {/* Main Content */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-            className="w-full"
-          >
-            {activeTab === 'define' && (
-              <div className="space-y-6">
-                {/* Schema Selection Option */}
-                {/* <Card className="border shadow-sm">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-lg">Choose Your Approach</CardTitle>
-                    <CardDescription>
-                      Start with an existing schema or create a new one from scratch
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-4">
-                        <Button
-                          variant={selectedSchemaId === undefined ? "default" : "outline"}
-                          onClick={() => {
-                            setSelectedSchemaId(undefined);
-                            setFieldDefinitions([]);
-                          }}
-                          className="flex-1"
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Create New Schema
-                        </Button>
-                        <div className="text-sm text-muted-foreground">or</div>
-                        <div className="flex-1">
-                          <SchemaSelector
-                            selectedSchemaId={selectedSchemaId}
-                            onSchemaSelect={(schema) => {
-                              setSelectedSchemaId(schema.id);
-                              setFieldDefinitions(schema.fields);
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card> */}
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  {/* Main Definition Area */}
-                  <div className="lg:col-span-2">
-                    <Card className="border shadow-sm">
-                      <CardContent className="p-6 pt-0">
-                        <SurveyCreator 
-                          onSurveyChange={handleSurveyChange}
-                          onFieldDefinitionsChange={handleFieldDefinitionsChange}
-                        />
-                      </CardContent>
-                    </Card>
-                  </div>
+      {/* Main Content */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.3 }}
+          className="w-full min-h-[500px]"
+        >
+          {activeTab === 'define' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Main Definition Area */}
+                <div className="lg:col-span-2">
+                  <Card className="border border-border/60 bg-muted/20 dark:bg-muted/30">
+                    <CardContent className="p-6 pt-0">
+                      <SurveyCreator
+                        onSurveyChange={handleSurveyChange}
+                        onFieldDefinitionsChange={handleFieldDefinitionsChange}
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
 
                 {/* Sidebar with Preview */}
                 <div className="space-y-6">
                   {fieldDefinitions.length > 0 ? (
                     <>
-                      <Card className="border shadow-sm">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="flex items-center justify-between text-lg">
+                      <Card className="border border-border/60 overflow-hidden bg-background">
+                        <div className="h-1 bg-primary w-full" />
+                        <CardHeader className="pb-3 bg-muted/25 dark:bg-muted/35">
+                          <CardTitle className="flex items-center justify-between text-lg font-semibold tracking-tight">
                             <span>Field Summary</span>
-                            <Badge variant="secondary">
+                            <Badge variant="secondary" className="">
                               {fieldDefinitions.length} fields
                             </Badge>
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-3">
+                        <CardContent className="space-y-4 pt-4">
                           <div className="grid grid-cols-2 gap-3">
-                            <div className="text-center p-3 bg-muted rounded-lg">
-                              <div className="text-2xl font-bold text-foreground">
+                            <div className="text-center p-3 bg-muted/45 dark:bg-muted/50 rounded-xl border border-border/40 hover:bg-muted/55 dark:hover:bg-muted/60 transition-colors">
+                              <div className="text-2xl font-bold text-foreground ">
                                 {fieldDefinitions.filter(f => f.required).length}
                               </div>
-                              <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                              <div className="text-xs text-muted-foreground flex items-center justify-center gap-1  uppercase tracking-wider">
                                 <CheckSquare className="h-3 w-3" />
                                 Required
                               </div>
                             </div>
-                            <div className="text-center p-3 bg-muted rounded-lg">
-                              <div className="text-2xl font-bold text-foreground">
+                            <div className="text-center p-3 bg-muted/45 dark:bg-muted/50 rounded-xl border border-border/40 hover:bg-muted/55 dark:hover:bg-muted/60 transition-colors">
+                              <div className="text-2xl font-bold text-foreground ">
                                 {fieldDefinitions.filter(f => f.type === 'table').length}
                               </div>
-                              <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                              <div className="text-xs text-muted-foreground flex items-center justify-center gap-1  uppercase tracking-wider">
                                 <Table className="h-3 w-3" />
                                 Tables
                               </div>
                             </div>
                           </div>
-                          
+
                           {/* Field Types Breakdown */}
-                          <div className="space-y-2">
-                            <h4 className="text-sm font-medium text-muted-foreground">Field Types</h4>
-                            <div className="space-y-1">
+                          {/* Code omitted for brevity, keeping existing logic but styling if needed */}
+                          <div className="space-y-3">
+                            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider ">Field Types</h4>
+                            <div className="space-y-1.5">
                               {Object.entries(
                                 fieldDefinitions.reduce((acc, field) => {
                                   acc[field.type] = (acc[field.type] || 0) + 1;
@@ -530,12 +477,12 @@ export function FieldExtractionComponent() {
                               ).map(([type, count]) => {
                                 const IconComponent = getFieldTypeIcon(type as FieldDefinition['type']);
                                 return (
-                                  <div key={type} className="flex items-center justify-between text-xs">
+                                  <div key={type} className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/35 dark:bg-muted/45 hover:bg-muted/50 dark:hover:bg-muted/55 transition-colors">
                                     <div className="flex items-center gap-2">
-                                      <IconComponent className="h-3 w-3 text-muted-foreground" />
-                                      <span className="capitalize">{type}</span>
+                                      <IconComponent className="h-4 w-4 text-muted-foreground" />
+                                      <span className="capitalize  text-foreground/80">{type}</span>
                                     </div>
-                                    <Badge variant="outline" className="h-5 px-1.5 text-xs">
+                                    <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-mono">
                                       {count}
                                     </Badge>
                                   </div>
@@ -549,31 +496,32 @@ export function FieldExtractionComponent() {
                       {/* Save Schema Button */}
                       <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
                         <DialogTrigger asChild>
-                          <Button variant="outline" className="w-full" size="lg">
-                            <Save className="h-5 w-5 mr-2" />
+                          <Button variant="default" className="w-full " size="lg">
+                            <Save className="h-4 w-4 mr-2" />
                             Save Schema
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-md">
                           <DialogHeader>
-                            <DialogTitle>Save Extraction Schema</DialogTitle>
-                            <DialogDescription>
+                            <DialogTitle className="font-semibold text-xl tracking-tight">Save Extraction Schema</DialogTitle>
+                            <DialogDescription className="">
                               Save your field definitions as a reusable extraction schema.
                             </DialogDescription>
                           </DialogHeader>
-                          <div className="space-y-4">
+                          <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                              <Label htmlFor="schema-name">Schema Name *</Label>
+                              <Label htmlFor="schema-name" className="">Schema Name *</Label>
                               <Input
                                 id="schema-name"
                                 placeholder="Enter schema name"
                                 value={schemaName}
                                 onChange={(e) => setSchemaName(e.target.value)}
                                 disabled={isSaving}
+                                className=""
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label htmlFor="schema-description">Description (Optional)</Label>
+                              <Label htmlFor="schema-description" className="">Description (Optional)</Label>
                               <Textarea
                                 id="schema-description"
                                 placeholder="Enter schema description"
@@ -581,28 +529,23 @@ export function FieldExtractionComponent() {
                                 onChange={(e) => setSchemaDescription(e.target.value)}
                                 disabled={isSaving}
                                 rows={3}
+                                className=" resize-none"
                               />
-                            </div>
-                            <div className="bg-muted p-3 rounded-lg">
-                              <p className="text-sm text-muted-foreground">
-                                This schema will include {fieldDefinitions.length} field{fieldDefinitions.length !== 1 ? 's' : ''} 
-                                {fieldDefinitions.filter(f => f.required).length > 0 && 
-                                  ` (${fieldDefinitions.filter(f => f.required).length} required)`
-                                }
-                              </p>
                             </div>
                           </div>
                           <DialogFooter>
                             <Button
-                              variant="outline"
+                              variant="ghost"
                               onClick={() => setShowSaveDialog(false)}
                               disabled={isSaving}
+                              className=""
                             >
                               Cancel
                             </Button>
                             <Button
                               onClick={handleSaveSchema}
                               disabled={!schemaName.trim() || isSaving}
+                              className=""
                             >
                               {isSaving ? 'Saving...' : 'Save Schema'}
                             </Button>
@@ -610,25 +553,26 @@ export function FieldExtractionComponent() {
                         </DialogContent>
                       </Dialog>
 
-                      <Button 
+                      <Button
                         onClick={() => setActiveTab('upload')}
-                        className="w-full"
+                        className="w-full "
+                        variant="secondary"
                         size="lg"
                       >
-                        <Upload className="h-5 w-5 mr-2" />
-                        Ready to Upload Files
+                        <Upload className="h-4 w-4 mr-2" />
+                        Proceed to Upload
                       </Button>
                     </>
                   ) : (
-                    <Card className="border-2 border-dashed border-muted-foreground/25">
+                    <Card className="border-dashed border-2 border-muted hover:border-muted-foreground/30 transition-colors bg-transparent shadow-none">
                       <CardContent className="p-8 text-center space-y-4">
-                        <div className="w-16 h-16 mx-auto bg-muted rounded-full flex items-center justify-center">
-                          <Settings className="h-8 w-8 text-muted-foreground" />
+                        <div className="w-12 h-12 mx-auto bg-muted rounded-full flex items-center justify-center">
+                          <Settings className="h-6 w-6 text-muted-foreground" />
                         </div>
-                        <div className="space-y-2">
-                          <h3 className="font-semibold text-lg">No Fields Defined</h3>
-                          <p className="text-muted-foreground text-sm">
-                            Start by creating your first extraction field using the form on the left.
+                        <div className="space-y-1">
+                          <h3 className="font-medium text-foreground ">No Fields Defined</h3>
+                          <p className="text-muted-foreground text-sm ">
+                            Start adding fields to see the summary here.
                           </p>
                         </div>
                       </CardContent>
@@ -636,13 +580,14 @@ export function FieldExtractionComponent() {
                   )}
                 </div>
               </div>
-              </div>
-            )}
+            </div>
+          )}
 
-            {activeTab === 'upload' && (
-              <div className="max-w-7xl mx-auto space-y-8">
-                {/* Schema Selection */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {activeTab === 'upload' && (
+            <div className="max-w-full mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
+                {/* Left Column: Schema Selector */}
+                <div className="lg:col-span-5 xl:col-span-4 space-y-6">
                   <SchemaSelector
                     onSchemaSelect={(schema) => {
                       setSelectedSchemaId(schema.id);
@@ -651,167 +596,163 @@ export function FieldExtractionComponent() {
                     }}
                     selectedSchemaId={selectedSchemaId}
                   />
-                  
-                  {selectedSchemaId && (
-                    <Card className="border-2 border-primary/20">
-                      <CardHeader>
-                        <CardTitle className="text-lg">Ready for Upload</CardTitle>
-                        <CardDescription>
-                          Schema "{selectedSchemaName}" selected with {fieldDefinitions.length} fields.
-                          You can now upload documents for extraction.
-                        </CardDescription>
-                      </CardHeader>
-                    </Card>
-                  )}
                 </div>
 
-                {/* File Upload Section */}
-                <Card className="border shadow-sm">
-                  <CardHeader className="border-b">
-                    <CardTitle className="flex items-center space-x-3 text-xl">
-                      <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                        <Upload className="h-4 w-4 text-primary-foreground" />
-                      </div>
-                      <span>Upload Documents</span>
-                    </CardTitle>
-                    <CardDescription className="text-base">
-                      Upload your documents to extract the defined fields using AI-powered processing.
-                      Supported formats: PDF, DOC, DOCX, TXT
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-6 space-y-6">
-                    {!selectedSchemaId ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Upload className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>Please select a schema first to upload documents</p>
-                      </div>
-                    ) : (
-                      <>
-                        <FileUploadZone 
-                          onFilesSelected={handleFileUpload}
-                          disabled={isProcessing}
-                          acceptedTypes={".pdf,.doc,.docx,.txt"}
-                        />
+                {/* Right Column: File Upload */}
+                <div className="lg:col-span-7 xl:col-span-8 space-y-6">
+                  <div className="space-y-6">
+                    <div className={!selectedSchemaId ? "opacity-60 pointer-events-none grayscale" : ""}>
+                      <FileUploadZone
+                        onFilesSelected={handleFileUpload}
+                        disabled={isProcessing || !selectedSchemaId}
+                        acceptedTypes={".pdf,.doc,.docx,.txt"}
+                      />
+                    </div>
 
-                        {uploadedFiles.length > 0 && (
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                              <h3 className="text-lg font-semibold">Processing Queue</h3>
-                              <Badge variant="outline">
-                                {uploadedFiles.length} files
-                              </Badge>
-                            </div>
-                            <div className="space-y-3">
-                              {uploadedFiles.map((file) => (
-                                <FileUploadItem 
-                                  key={file.id}
-                                  file={file}
-                                  onRemove={() => handleRemoveFile(file.id)}
-                                />
-                              ))}
-                            </div>
-                            
-                            {uploadedFiles.some(f => f.status === 'completed') && (
-                              <div className="flex justify-center pt-4">
-                                <Button 
-                                  onClick={() => setActiveTab('results')}
-                                  size="lg"
-                                >
-                                  <Eye className="h-5 w-5 mr-2" />
-                                  View Extraction Results
+                    {!selectedSchemaId && (
+                      <div className="text-center p-4">
+                        <p className="text-muted-foreground  flex items-center justify-center gap-2">
+                          <ChevronDown className="h-4 w-4 animate-bounce" />
+                          Please select a schema from the left to unlock upload
+                        </p>
+                      </div>
+                    )}
+
+                    {uploadedFiles.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="space-y-4 pt-4"
+                      >
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-lg font-semibold tracking-tight">Processing Queue</h3>
+                          <Badge variant="outline" className="">
+                            {uploadedFiles.length} files
+                          </Badge>
+                        </div>
+                        <div className="space-y-3">
+                          {uploadedFiles.map((file) => (
+                            <Card key={file.id} className="overflow-hidden border shadow-sm">
+                              <div className="flex items-center p-3 gap-4">
+                                <div className={`p-2 rounded-lg ${file.status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' : 'bg-muted text-muted-foreground'}`}>
+                                  {file.status === 'completed' ? <CheckSquare className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium truncate  text-sm">{file.file.name}</p>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <Progress value={file.progress} className="h-1.5 w-24" />
+                                    <span className="text-xs text-muted-foreground capitalize ">{file.status}</span>
+                                  </div>
+                                </div>
+                                <Button variant="ghost" size="icon" onClick={() => handleRemoveFile(file.id)} className="h-8 w-8">
+                                  <X className="h-4 w-4" />
                                 </Button>
                               </div>
-                            )}
+                            </Card>
+                          ))}
+                        </div>
+
+                        {uploadedFiles.some(f => f.status === 'completed') && (
+                          <div className="flex justify-start pt-4">
+                            <Button
+                              onClick={() => setActiveTab('results')}
+                              size="lg"
+                              className=""
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Results
+                            </Button>
                           </div>
                         )}
-                      </>
+                      </motion.div>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {activeTab === 'results' && (
-              <div className="max-w-7xl mx-auto space-y-8">
-                <Card className="border shadow-sm">
-                  <CardHeader className="border-b">
-                    <CardTitle className="flex items-center justify-between text-xl">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                          <Eye className="h-4 w-4 text-primary-foreground" />
-                        </div>
-                        <span>Extraction Results</span>
+          {activeTab === 'results' && (
+            <div className="max-w-7xl mx-auto space-y-8">
+              <Card className="border shadow-sm">
+                <CardHeader className="border-b">
+                  <CardTitle className="flex items-center justify-between text-xl">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                        <Eye className="h-4 w-4 text-primary-foreground" />
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant="secondary">
-                          {uploadedFiles.filter(f => f.status === 'completed').length} files processed
-                        </Badge>
-                        <Button variant="outline" size="sm" className="flex items-center space-x-2">
-                          <Download className="h-4 w-4" />
-                          <span>Export All</span>
-                        </Button>
-                      </div>
-                    </CardTitle>
-                    <CardDescription className="text-base">
-                      Review and download the extracted field data from your documents. 
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-6 py-0">
-                    <div className="space-y-6">
-                      {uploadedFiles
-                        .filter(f => f.status === 'completed' && f.extractionId && f.results)
-                        .map((file) => (
-                          <ExtractionEditor
-                            key={file.id}
-                            extractionId={file.extractionId!}
-                            initialData={file.results!}
-                            fieldDefinitions={fieldDefinitions}
-                            filename={file.file.name}
-                            onUpdate={(updatedData) => {
-                              // Update the local state with new data
-                              setUploadedFiles(prev =>
-                                prev.map(f => 
-                                  f.id === file.id 
-                                    ? { ...f, results: updatedData }
-                                    : f
-                                )
-                              );
-                            }}
-                            onApprove={() => {
-                              // Mark as approved and move to data library view
-                              console.log('Extraction approved for:', file.file.name);
-                              // Show a toast notification
-                              // Switch to data library tab to show the saved extraction
-                              setTimeout(() => setActiveTab('library'), 1000);
-                            }}
-                            onDelete={() => {
-                              // Remove from uploaded files list
-                              setUploadedFiles(prev =>
-                                prev.filter(f => f.id !== file.id)
-                              );
-                            }}
-                          />
-                        ))
-                      }
-                      
-                      {uploadedFiles.filter(f => f.status === 'completed').length === 0 && (
-                        <div className="text-center py-8 text-muted-foreground">
-                          No completed extractions to display.
-                        </div>
-                      )}
+                      <span>Extraction Results</span>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="secondary">
+                        {uploadedFiles.filter(f => f.status === 'completed').length} files processed
+                      </Badge>
+                      <Button variant="outline" size="sm" className="flex items-center space-x-2">
+                        <Download className="h-4 w-4" />
+                        <span>Export All</span>
+                      </Button>
+                    </div>
+                  </CardTitle>
+                  <CardDescription className="text-base">
+                    Review and download the extracted field data from your documents.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6 py-0">
+                  <div className="space-y-6">
+                    {uploadedFiles
+                      .filter(f => f.status === 'completed' && f.extractionId && f.results)
+                      .map((file) => (
+                        <ExtractionEditor
+                          key={file.id}
+                          extractionId={file.extractionId!}
+                          initialData={file.results!}
+                          fieldDefinitions={fieldDefinitions}
+                          filename={file.file.name}
+                          onUpdate={(updatedData) => {
+                            // Update the local state with new data
+                            setUploadedFiles(prev =>
+                              prev.map(f =>
+                                f.id === file.id
+                                  ? { ...f, results: updatedData }
+                                  : f
+                              )
+                            );
+                          }}
+                          onApprove={() => {
+                            // Mark as approved and move to data library view
+                            console.log('Extraction approved for:', file.file.name);
+                            // Show a toast notification
+                            // Switch to data library tab to show the saved extraction
+                            setTimeout(() => setActiveTab('library'), 1000);
+                          }}
+                          onDelete={() => {
+                            // Remove from uploaded files list
+                            setUploadedFiles(prev =>
+                              prev.filter(f => f.id !== file.id)
+                            );
+                          }}
+                        />
+                      ))
+                    }
 
-            {activeTab === 'library' && (
-              <div className="w-full">
-                <DataLibraryComponent />
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+                    {uploadedFiles.filter(f => f.status === 'completed').length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No completed extractions to display.
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === 'library' && (
+            <div className="w-full">
+              <DataLibraryComponent />
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
@@ -831,26 +772,24 @@ function StepIndicator({ step, title, isActive, isCompleted, disabled, onClick }
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`flex flex-col items-center space-y-2 p-2 rounded-lg transition-colors ${
-        disabled 
-          ? 'opacity-50 cursor-not-allowed' 
-          : 'hover:bg-muted cursor-pointer'
-      }`}
+      className={`flex flex-col items-center space-y-2 p-2 rounded-lg transition-colors ${disabled
+        ? 'opacity-50 cursor-not-allowed'
+        : 'hover:bg-muted cursor-pointer'
+        }`}
     >
       <div className={`
         w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm
-        ${isCompleted 
-          ? 'bg-primary text-primary-foreground' 
-          : isActive 
-            ? 'bg-primary text-primary-foreground' 
+        ${isCompleted
+          ? 'bg-primary text-primary-foreground'
+          : isActive
+            ? 'bg-primary text-primary-foreground'
             : 'bg-muted text-muted-foreground'
         }
       `}>
         {isCompleted ? '✓' : step}
       </div>
-      <span className={`text-xs font-medium ${
-        isActive ? 'text-foreground' : 'text-muted-foreground'
-      }`}>
+      <span className={`text-xs font-medium ${isActive ? 'text-foreground' : 'text-muted-foreground'
+        }`}>
         {title}
       </span>
     </button>
@@ -871,8 +810,8 @@ function FileUploadItem({ file, onRemove }: FileUploadItemProps) {
           <p className="text-sm font-medium truncate">{file.file.name}</p>
           <div className="flex items-center space-x-2 mt-1">
             <Badge variant={
-              file.status === 'completed' ? 'default' : 
-              file.status === 'error' ? 'destructive' : 'secondary'
+              file.status === 'completed' ? 'default' :
+                file.status === 'error' ? 'destructive' : 'secondary'
             }>
               {file.status}
             </Badge>

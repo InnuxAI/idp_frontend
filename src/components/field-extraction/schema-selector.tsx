@@ -94,12 +94,12 @@ export function SchemaSelector({ onSchemaSelect, selectedSchemaId }: SchemaSelec
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Select Schema</CardTitle>
+    <Card className="border-none shadow-none bg-transparent">
+      <CardHeader className="px-0 pt-0">
+        <CardTitle className="text-xl text-foreground">Select Schema</CardTitle>
         <CardDescription>Choose an existing schema for field extraction</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="px-0 space-y-4">
         <Select
           value={selectedSchemaId?.toString()}
           onValueChange={(value) => {
@@ -109,15 +109,15 @@ export function SchemaSelector({ onSchemaSelect, selectedSchemaId }: SchemaSelec
             }
           }}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full font-inter bg-background">
             <SelectValue placeholder="Select a schema..." />
           </SelectTrigger>
           <SelectContent>
             {schemas?.map((schema) => (
-              <SelectItem key={schema.id} value={schema.id.toString()}>
+              <SelectItem key={schema.id} value={schema.id.toString()} className="font-inter">
                 <div className="flex items-center justify-between w-full">
                   <span>{schema.name}</span>
-                  <Badge variant="outline" className="ml-2">
+                  <Badge variant="secondary" className="ml-2 text-[10px] h-5">
                     {schema.fields.length} fields
                   </Badge>
                 </div>
@@ -130,43 +130,45 @@ export function SchemaSelector({ onSchemaSelect, selectedSchemaId }: SchemaSelec
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-4 border rounded-lg bg-muted/50"
+            className="p-5 border border-border/60 rounded-xl bg-muted/35 dark:bg-muted/40 space-y-4"
           >
+            <div>
+              <h4 className="font-semibold text-lg text-foreground tracking-tight">{selectedSchema.name}</h4>
+              {selectedSchema.description && (
+                <p className="text-sm text-muted-foreground mt-1 font-inter">
+                  {selectedSchema.description}
+                </p>
+              )}
+            </div>
+
             <div className="space-y-3">
-              <div>
-                <h4 className="font-medium text-sm">{selectedSchema.name}</h4>
-                {selectedSchema.description && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {selectedSchema.description}
-                  </p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-inter">
                   Fields ({selectedSchema.fields.length})
                 </p>
-                <div className="grid grid-cols-1 gap-2">
-                  {selectedSchema.fields.map((field, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-2 bg-background rounded border"
-                    >
-                      <div className="flex items-center space-x-2">
+              </div>
+              <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-muted-foreground/20 hover:scrollbar-thumb-muted-foreground/40">
+                {selectedSchema.fields.map((field, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3.5 bg-muted/50 dark:bg-muted/55 hover:bg-muted/65 dark:hover:bg-muted/65 rounded-md border border-border/40 transition-colors group"
+                  >
+                    <div className="flex items-center space-x-3.5">
+                      <div className="p-1.5 rounded-md bg-background text-muted-foreground group-hover:text-primary transition-colors border border-border/40">
                         {getFieldTypeIcon(field.type)}
-                        <span className="text-sm font-medium">{field.label}</span>
-                        {field.required && (
-                          <Badge variant="destructive" className="text-xs px-1 py-0">
-                            Required
-                          </Badge>
-                        )}
                       </div>
-                      <Badge variant="outline" className="text-xs">
-                        {field.type}
-                      </Badge>
+                      <span className="text-sm font-medium font-inter">{field.label}</span>
+                      {field.required && (
+                        <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4 font-inter">
+                          Required
+                        </Badge>
+                      )}
                     </div>
-                  ))}
-                </div>
+                    <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground">
+                      {field.type}
+                    </Badge>
+                  </div>
+                ))}
               </div>
             </div>
           </motion.div>

@@ -74,8 +74,8 @@ export function ExtractionViewerModal({
                             </DialogTitle>
                         </div>
                         {extraction && (
-                            <Badge variant={extraction.is_approved ? "default" : "secondary"}>
-                                {extraction.is_approved ? "Approved" : "Draft"}
+                            <Badge variant={extraction.status === 'APPROVED' ? "default" : "secondary"}>
+                                {extraction.status === 'APPROVED' ? "Approved" : extraction.status?.replace('_', ' ') || 'Draft'}
                             </Badge>
                         )}
                         {extraction && (
@@ -130,14 +130,15 @@ export function ExtractionViewerModal({
                                     onUpdate?.();
                                 }}
                                 onApprove={() => {
-                                    setExtraction(prev => prev ? ({ ...prev, is_approved: true }) : null);
+                                    setExtraction(prev => prev ? ({ ...prev, is_approved: true, status: 'APPROVED' }) : null);
                                     onUpdate?.();
+                                    onClose();  // Close modal after approval
                                 }}
                                 onDelete={() => {
                                     onUpdate?.();
                                     onClose();
                                 }}
-                                isApproved={extraction.is_approved}
+                                isApproved={extraction.status === 'APPROVED'}
                             />
                         ) : (
                             <div className="flex items-center justify-center h-full text-muted-foreground">

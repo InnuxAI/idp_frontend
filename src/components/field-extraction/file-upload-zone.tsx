@@ -40,7 +40,7 @@ export function FileUploadZone({
   const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    
+
     if (disabled) return;
 
     const files = Array.from(e.dataTransfer.files);
@@ -76,7 +76,7 @@ export function FileUploadZone({
 
     // Server-side validation for each file
     const validatedFiles: File[] = [];
-    
+
     for (const file of clientValidatedFiles) {
       const validation = await validateFile(file);
       if (validation.valid) {
@@ -116,13 +116,13 @@ export function FileUploadZone({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        whileHover={disabled ? {} : { scale: 1.02 }}
-        whileTap={disabled ? {} : { scale: 0.98 }}
+        whileHover={disabled ? {} : { scale: 1.01 }}
+        whileTap={disabled ? {} : { scale: 0.99 }}
         className={`
-          relative border-2 border-dashed rounded-lg p-8 text-center transition-colors
+          relative border border-dashed rounded-xl p-10 text-center transition-all duration-300
           ${dragOver && !disabled
             ? 'border-primary bg-primary/5'
-            : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+            : 'border-border/50 hover:border-primary/50 bg-muted/20 dark:bg-muted/30 hover:bg-muted/35 dark:hover:bg-muted/45'
           }
           ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         `}
@@ -135,31 +135,36 @@ export function FileUploadZone({
           disabled={disabled}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         />
-        
-        <div className="space-y-4">
+
+        <div className="space-y-5">
           <motion.div
-            animate={dragOver ? { scale: 1.1 } : { scale: 1 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            animate={dragOver ? { scale: 1.1, rotate: 10 } : { scale: 1, rotate: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            className="w-16 h-16 mx-auto bg-background rounded-full flex items-center justify-center border border-border/50"
           >
-            <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
+            <Upload className={`h-8 w-8 ${dragOver ? 'text-primary' : 'text-muted-foreground'}`} />
           </motion.div>
-          
-          <div>
-            <h3 className="text-lg font-semibold">
+
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold tracking-tight text-foreground">
               {dragOver ? 'Drop files here' : 'Upload Documents'}
             </h3>
-            <p className="text-muted-foreground mt-2">
+            <p className="font-inter text-muted-foreground">
               Drag and drop files here, or click to browse
             </p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Supported formats: {acceptedTypes} • Max size: {formatFileSize(maxFileSize)} • Max files: {maxFiles}
-            </p>
+            <div className="flex items-center justify-center gap-3 text-xs font-inter text-muted-foreground/80 mt-2">
+              <span className="bg-secondary/50 px-2 py-1 rounded text-foreground/80 font-medium">PDF, DOC, DOCX, TXT</span>
+              <span>•</span>
+              <span>Max {Math.floor(maxFileSize / 1024 / 1024)}MB</span>
+            </div>
           </div>
-          
+
           {!disabled && (
-            <Button variant="outline" type="button">
-              Browse Files
-            </Button>
+            <div className="pt-2">
+              <Button variant="secondary" type="button" className="font-inter text-xs">
+                Select Files
+              </Button>
+            </div>
           )}
         </div>
       </motion.div>
@@ -178,7 +183,7 @@ export function FileUploadZone({
               Upload & Process
             </Button>
           </div>
-          
+
           <div className="space-y-2">
             {selectedFiles.map((file, index) => (
               <motion.div
@@ -186,13 +191,15 @@ export function FileUploadZone({
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="flex items-center justify-between p-3 border rounded-lg bg-card"
+                className="flex items-center justify-between p-3 border border-border/40 rounded-lg bg-muted/30 dark:bg-muted/45 hover:bg-muted/45 dark:hover:bg-muted/55 transition-colors"
               >
                 <div className="flex items-center space-x-3">
-                  <FileText className="h-5 w-5 text-muted-foreground" />
+                  <div className="p-2 bg-muted/55 dark:bg-muted/60 rounded-md border border-border/40">
+                    <FileText className="h-5 w-5 text-primary/80" />
+                  </div>
                   <div>
-                    <p className="font-medium">{file.name}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="font-medium text-sm text-foreground">{file.name}</p>
+                    <p className="text-xs text-muted-foreground font-inter mt-0.5">
                       {formatFileSize(file.size)} • {file.type || 'Unknown type'}
                     </p>
                   </div>
@@ -202,6 +209,7 @@ export function FileUploadZone({
                   size="sm"
                   onClick={() => removeFile(index)}
                   disabled={disabled}
+                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
                 >
                   <X className="h-4 w-4" />
                 </Button>

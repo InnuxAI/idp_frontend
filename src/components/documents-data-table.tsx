@@ -122,7 +122,7 @@ const createColumns = (onDelete: (doc: Document) => void): ColumnDef<Document>[]
           <SheetTrigger asChild>
             <Button
               variant="link"
-              className="h-auto p-0 text-left font-medium text-blue-600 hover:text-blue-800 justify-start"
+              className="h-auto p-0 text-left font-medium text-foreground hover:text-primary justify-start"
             >
               <div className="flex items-center space-x-2">
                 <FileText className="h-4 w-4" />
@@ -130,8 +130,8 @@ const createColumns = (onDelete: (doc: Document) => void): ColumnDef<Document>[]
               </div>
             </Button>
           </SheetTrigger>
-          <SheetContent 
-            side="right" 
+          <SheetContent
+            side="right"
             className="w-[90vw] !max-w-[90vw] p-0 sm:!max-w-[90vw]"
           >
             <SheetHeader className="p-4 border-b">
@@ -206,7 +206,7 @@ const createColumns = (onDelete: (doc: Document) => void): ColumnDef<Document>[]
             <DropdownMenuItem>Download</DropdownMenuItem>
             <DropdownMenuItem>Copy Link</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem 
+            <DropdownMenuItem
               className="text-red-600"
               onClick={() => onDelete(doc)}
             >
@@ -293,9 +293,9 @@ export function DocumentsDataTable({ documents, onDocumentDeleted }: DocumentsDa
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}
@@ -333,7 +333,7 @@ export function DocumentsDataTable({ documents, onDocumentDeleted }: DocumentsDa
           </TableBody>
         </Table>
       </div>
-      
+
       {/* Pagination */}
       <div className="flex items-center justify-between px-4">
         <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">

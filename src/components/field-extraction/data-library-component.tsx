@@ -13,7 +13,10 @@ import {
   Calendar,
   CheckCircle,
   AlertCircle,
-  FileJson
+  FileJson,
+  Clock,
+  Loader2,
+  XCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,8 +26,31 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { apiService, DataLibraryEntry, DataLibraryResponse } from '@/services/api';
+import { apiService, DataLibraryEntry, DataLibraryResponse, ExtractionStatus } from '@/services/api';
 import { ExtractionViewerModal } from './extraction-viewer-modal';
+import { useDataLibraryWebSocket } from '@/hooks/useDataLibraryWebSocket';
+
+// Helper function to get status badge configuration
+const getStatusBadge = (entry: DataLibraryEntry) => {
+  const statusConfig: Record<ExtractionStatus, { color: string; icon: React.ReactNode; label: string }> = {
+    PENDING: { color: "bg-gray-500", icon: <Clock className="h-3 w-3 mr-1" />, label: "Pending" },
+    PROCESSING: { color: "bg-blue-500", icon: <Loader2 className="h-3 w-3 mr-1 animate-spin" />, label: "Processing" },
+    AWAITING_APPROVAL: { color: "bg-yellow-500", icon: <AlertCircle className="h-3 w-3 mr-1" />, label: "Awaiting Approval" },
+    APPROVED: { color: "bg-green-500", icon: <CheckCircle className="h-3 w-3 mr-1" />, label: "Approved" },
+    FAILED: { color: "bg-red-500", icon: <XCircle className="h-3 w-3 mr-1" />, label: "Failed" },
+  };
+
+  // Use status if available, fallback to is_approved for backward compat
+  const status = entry.status || (entry.is_approved ? 'APPROVED' : 'AWAITING_APPROVAL');
+  const config = statusConfig[status] || statusConfig.AWAITING_APPROVAL;
+
+  return (
+    <Badge variant="default" className={`${config.color} text-black`}>
+      {config.icon}
+      {config.label}
+    </Badge>
+  );
+};
 
 export function DataLibraryComponent() {
   const [entries, setEntries] = useState<DataLibraryEntry[]>([]);
@@ -39,6 +65,38 @@ export function DataLibraryComponent() {
   useEffect(() => {
     loadDataLibrary();
   }, []);
+
+  // Real-time updates via WebSocket
+  useDataLibraryWebSocket({
+    onJobCreated: (newEntry) => {
+      console.log('🆕 New job created:', newEntry);
+      // Add to beginning of list if not already present
+      setEntries(prev => {
+        if (prev.some(e => e.id === newEntry.id)) return prev;
+        return [newEntry as DataLibraryEntry, ...prev];
+      });
+    },
+    onStatusChanged: (update) => {
+      console.log('🔄 Status changed:', update);
+      setEntries(prev =>
+        prev.map(e =>
+          e.id === update.id
+            ? {
+              ...e,
+              status: update.status as ExtractionStatus,
+              extracted_data: update.extracted_data || e.extracted_data,
+              error_message: update.error_message,
+              is_approved: update.status === 'APPROVED'
+            }
+            : e
+        )
+      );
+    },
+    onJobDeleted: ({ id }) => {
+      console.log('🗑️ Job deleted:', id);
+      setEntries(prev => prev.filter(e => e.id !== id));
+    }
+  });
 
   const loadDataLibrary = async () => {
     try {
@@ -191,22 +249,7 @@ export function DataLibraryComponent() {
                         <Badge variant="outline">{entry.schema_name}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          variant="default"
-                          className={entry.is_approved ? "bg-green-500 text-black" : "bg-blue-500 text-black"}
-                        >
-                          {entry.is_approved ? (
-                            <>
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Approved
-                            </>
-                          ) : (
-                            <>
-                              <AlertCircle className="h-3 w-3 mr-1" />
-                              Draft
-                            </>
-                          )}
-                        </Badge>
+                        {getStatusBadge(entry)}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {formatDate(entry.created_at)}

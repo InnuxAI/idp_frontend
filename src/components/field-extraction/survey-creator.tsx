@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { 
-  Plus, 
-  Trash2, 
-  X, 
-  Table, 
-  Code, 
-  Eye, 
-  List, 
+import {
+  Plus,
+  Trash2,
+  X,
+  Table,
+  Code,
+  Eye,
+  List,
   RotateCcw,
   Type,
   Hash,
@@ -158,7 +158,7 @@ export function SurveyCreator({ onSurveyChange, onFieldDefinitionsChange }: Surv
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 max-h-[calc(100vh-300px)] overflow-y-auto">
       {/* Header with JSON Toggle */}
       <div className="flex justify-between items-start">
         <div className="space-y-1">
@@ -256,10 +256,10 @@ export function SurveyCreator({ onSurveyChange, onFieldDefinitionsChange }: Surv
             Field List ({fields.length})
           </TabsTrigger>
         </TabsList>
-
+        
         <TabsContent value="form" className="mt-6">
           <Card>
-            <CardContent className="p-6 space-y-6">
+            <CardContent className="p-6 space-y-6 overflow-y-auto">
               {/* Basic Information */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
