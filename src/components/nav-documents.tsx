@@ -33,6 +33,7 @@ export function NavDocuments({
     url: string
     icon: Icon
     disabled?: boolean
+    tooltip?: string
   }[]
 }) {
   const { isMobile } = useSidebar()
@@ -43,10 +44,11 @@ export function NavDocuments({
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton 
+            <SidebarMenuButton
               asChild={!item.disabled}
               disabled={item.disabled}
               className={item.disabled ? "opacity-50 cursor-not-allowed" : undefined}
+              tooltip={item.tooltip || item.name}
             >
               {item.disabled ? (
                 <span className="flex items-center gap-2">
@@ -65,7 +67,7 @@ export function NavDocuments({
                 <SidebarMenuAction
                   showOnHover
                   className="data-[state=open]:bg-accent rounded-sm"
-                  style={{ 
+                  style={{
                     visibility: item.disabled ? 'hidden' : 'visible',
                     pointerEvents: item.disabled ? 'none' : 'auto'
                   }}

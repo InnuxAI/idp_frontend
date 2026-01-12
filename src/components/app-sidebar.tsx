@@ -11,7 +11,7 @@ import {
   IconFileWord,
   IconFolder,
   IconHelp,
-  IconInnerShadowTop,
+  IconSchema,
   IconListDetails,
   IconReport,
   IconSearch,
@@ -44,33 +44,39 @@ const data = {
       title: "Dashboard",
       url: "/dashboard",
       icon: IconDashboard,
+      tooltip: "Overview of all metrics",
+    },
+    {
+      title: "Knowledge Graph",
+      url: "/zete",
+      icon: IconSchema,
+      tooltip: "Visualize relationships",
     },
     {
       title: "Field Extraction",
       url: "/field-extraction",
       icon: IconFileAi,
-    },
-    {
-      title: "Extraction Schemas",
-      url: "/extraction-schemas",
-      icon: IconDatabase,
+      tooltip: "Extract data from documents",
     },
     {
       title: "Analytics",
       url: "/2_way_match",
       icon: IconChartBar,
+      tooltip: "Two Way matching",
     },
     {
       title: "Projects",
       url: "#",
       icon: IconFolder,
       disabled: true,
+      tooltip: "Manage your projects",
     },
     {
       title: "Team",
       url: "#",
       icon: IconUsers,
       disabled: true,
+      tooltip: "Manage team members",
     },
   ],
   navClouds: [
@@ -143,17 +149,20 @@ const data = {
       name: "Data Library",
       url: "/data-library",
       icon: IconDatabase,
+      tooltip: "Manage uploaded documents",
     },
     {
-      name: "Field Extraction",
-      url: "/field-extraction",
-      icon: IconFileAi,
+      name: "Schema Library",
+      url: "/extraction-schemas",
+      icon: IconDatabase,
+      tooltip: "Manage extraction schemas",
     },
     {
       name: "Reports",
       url: "#",
       icon: IconReport,
       disabled: true,
+      tooltip: "View generated reports",
     },
   ],
 };
@@ -171,11 +180,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <a href="#">
                 {/* <IconInnerShadowTop className="!size-5" /> */}
                 <img
-                  src="https://www.innuxai.com/innuxlogo.svg"
+                  src="./innuxlogo.svg"
                   alt="Innux AI Logo"
                   className="h-6 w-auto"
                 />
-                <span className="text-base font-semibold">Innux AI</span>
+                <div className="flex items-baseline gap-2 leading-none">
+                  <span className="text-base font-bold tracking-tight ">Innux AI</span>
+                  <span className="font-serif text-sm italic text-muted-foreground">
+                    your thinking partner
+                  </span>
+                </div>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

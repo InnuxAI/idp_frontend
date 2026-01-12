@@ -436,59 +436,40 @@ export function FieldExtractionComponent() {
                         <div className="h-1 bg-primary w-full" />
                         <CardHeader className="pb-3 bg-muted/25 dark:bg-muted/35">
                           <CardTitle className="flex items-center justify-between text-lg font-semibold tracking-tight">
-                            <span>Field Summary</span>
-                            <Badge variant="secondary" className="">
+                            <div className="flex items-center gap-2">
+                              <span>Field Summary</span>
+                              {fieldDefinitions.filter(f => f.required).length > 0 && (
+                                <Badge variant="destructive" className="ml-2 text-[10px] px-1.5 h-5">
+                                  {fieldDefinitions.filter(f => f.required).length} Required
+                                </Badge>
+                              )}
+                            </div>
+                            <Badge variant="secondary">
                               {fieldDefinitions.length} fields
                             </Badge>
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4 pt-4">
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="text-center p-3 bg-muted/45 dark:bg-muted/50 rounded-xl border border-border/40 hover:bg-muted/55 dark:hover:bg-muted/60 transition-colors">
-                              <div className="text-2xl font-bold text-foreground ">
-                                {fieldDefinitions.filter(f => f.required).length}
+                          <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+                            {fieldDefinitions.map((field, idx) => {
+                              const IconComponent = getFieldTypeIcon(field.type);
+                              return (
+                                <div key={idx} className="flex items-center justify-between p-2 rounded-md bg-muted/30 border border-border/40 hover:bg-muted/50 transition-colors">
+                                  <span className="text-sm font-medium truncate max-w-[140px]" title={field.label}>
+                                    {field.label}
+                                  </span>
+                                  <Badge variant="outline" className="text-[10px] font-normal gap-1 px-1.5 bg-background">
+                                    <IconComponent className="h-3 w-3 text-muted-foreground" />
+                                    <span className="capitalize">{field.type}</span>
+                                  </Badge>
+                                </div>
+                              );
+                            })}
+                            {fieldDefinitions.length === 0 && (
+                              <div className="text-center py-8 text-muted-foreground text-sm">
+                                No fields added yet.
                               </div>
-                              <div className="text-xs text-muted-foreground flex items-center justify-center gap-1  uppercase tracking-wider">
-                                <CheckSquare className="h-3 w-3" />
-                                Required
-                              </div>
-                            </div>
-                            <div className="text-center p-3 bg-muted/45 dark:bg-muted/50 rounded-xl border border-border/40 hover:bg-muted/55 dark:hover:bg-muted/60 transition-colors">
-                              <div className="text-2xl font-bold text-foreground ">
-                                {fieldDefinitions.filter(f => f.type === 'table').length}
-                              </div>
-                              <div className="text-xs text-muted-foreground flex items-center justify-center gap-1  uppercase tracking-wider">
-                                <Table className="h-3 w-3" />
-                                Tables
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Field Types Breakdown */}
-                          {/* Code omitted for brevity, keeping existing logic but styling if needed */}
-                          <div className="space-y-3">
-                            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider ">Field Types</h4>
-                            <div className="space-y-1.5">
-                              {Object.entries(
-                                fieldDefinitions.reduce((acc, field) => {
-                                  acc[field.type] = (acc[field.type] || 0) + 1;
-                                  return acc;
-                                }, {} as Record<string, number>)
-                              ).map(([type, count]) => {
-                                const IconComponent = getFieldTypeIcon(type as FieldDefinition['type']);
-                                return (
-                                  <div key={type} className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/35 dark:bg-muted/45 hover:bg-muted/50 dark:hover:bg-muted/55 transition-colors">
-                                    <div className="flex items-center gap-2">
-                                      <IconComponent className="h-4 w-4 text-muted-foreground" />
-                                      <span className="capitalize  text-foreground/80">{type}</span>
-                                    </div>
-                                    <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-mono">
-                                      {count}
-                                    </Badge>
-                                  </div>
-                                );
-                              })}
-                            </div>
+                            )}
                           </div>
                         </CardContent>
                       </Card>

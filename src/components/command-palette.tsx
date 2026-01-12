@@ -66,16 +66,16 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <span>Dashboard</span>
           </CommandItem>
           <CommandItem
+            onSelect={() => runCommand(() => router.push("/zete"))}
+          >
+            <IconDashboard className="mr-2 h-4 w-4" />
+            <span>Knowledge Graph</span>
+          </CommandItem>
+          <CommandItem
             onSelect={() => runCommand(() => router.push("/field-extraction"))}
           >
             <IconFileAi className="mr-2 h-4 w-4" />
             <span>Field Extraction</span>
-          </CommandItem>
-          <CommandItem
-            onSelect={() => runCommand(() => router.push("/extraction-schemas"))}
-          >
-            <IconDatabase className="mr-2 h-4 w-4" />
-            <span>Extraction Schemas</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => router.push("/chat"))}
@@ -83,11 +83,23 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <IconMessageCircle className="mr-2 h-4 w-4" />
             <span>Chat with Documents</span>
           </CommandItem>
+          
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Library">
           <CommandItem
             onSelect={() => runCommand(() => router.push("/data-library"))}
           >
             <IconDatabase className="mr-2 h-4 w-4" />
             <span>Data Library</span>
+          </CommandItem>
+          <CommandItem
+            onSelect={() => runCommand(() => router.push("/extraction-schemas"))}
+          >
+            <IconDatabase className="mr-2 h-4 w-4" />
+            <span>Schema Library</span>
           </CommandItem>
         </CommandGroup>
 

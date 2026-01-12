@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { DocumentsDataTable } from '@/components/documents-data-table';
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator, BreadcrumbLink } from "@/components/ui/breadcrumb";
 import {
   SidebarInset,
   SidebarProvider,
@@ -100,19 +101,35 @@ export default function DataLibraryPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SiteHeader />
+        <SiteHeader 
+          breadcrumb={
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink href="#" className="dark:text-zinc-400 dark:hover:text-zinc-200">
+                    Library
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden md:block dark:text-zinc-600" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="dark:text-zinc-100">Data Library</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          }
+        />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               <div className="px-4 lg:px-6">
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ type: "spring", stiffness: 300, damping: 25 }}
                   className="flex items-center justify-between mb-6"
                 >
                   <div>
-                    <motion.h1 
+                    <motion.h1
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 25 }}
@@ -120,7 +137,7 @@ export default function DataLibraryPage() {
                     >
                       Data Library
                     </motion.h1>
-                    <motion.p 
+                    <motion.p
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 25 }}
@@ -129,7 +146,7 @@ export default function DataLibraryPage() {
                       Manage and browse your document collection
                     </motion.p>
                   </div>
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.3, type: "spring", stiffness: 400, damping: 25 }}
@@ -165,13 +182,13 @@ export default function DataLibraryPage() {
                 </motion.div>
 
                 {/* Search and Filter */}
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, type: "spring", stiffness: 300, damping: 25 }}
                   className="flex items-center space-x-4 mb-6"
                 >
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5, type: "spring", stiffness: 300, damping: 25 }}
@@ -185,7 +202,7 @@ export default function DataLibraryPage() {
                       className="pl-9"
                     />
                   </motion.div>
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.6, type: "spring", stiffness: 300, damping: 25 }}
@@ -209,11 +226,11 @@ export default function DataLibraryPage() {
                         key={category.id}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ 
-                          delay: 0.7 + index * 0.05, 
-                          type: "spring", 
-                          stiffness: 400, 
-                          damping: 25 
+                        transition={{
+                          delay: 0.7 + index * 0.05,
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 25
                         }}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -223,8 +240,8 @@ export default function DataLibraryPage() {
                           onClick={() => setSelectedCategory(category.id)}
                           className="flex items-center space-x-2"
                         >
-                          <div 
-                            className="h-2 w-2 rounded-full" 
+                          <div
+                            className="h-2 w-2 rounded-full"
                             style={{ backgroundColor: category.color }}
                           />
                           <span>{category.name}</span>
@@ -237,7 +254,7 @@ export default function DataLibraryPage() {
                 {/* Search Results Indicator */}
                 <AnimatePresence>
                   {searchQuery && (
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
@@ -258,7 +275,7 @@ export default function DataLibraryPage() {
                 <AnimatePresence mode="wait">
                   {!selectedCategory ? (
                     // Overview Content
-                    <motion.div 
+                    <motion.div
                       key="overview"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -267,37 +284,37 @@ export default function DataLibraryPage() {
                       className="space-y-6"
                     >
                       {/* Category Overview Cards */}
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4"
                       >
                         {documentCategories.map((category, index) => (
                           <motion.div
                             key={category.id}
                             initial={{ opacity: 0, y: 20, scale: 0.9 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
-                            transition={{ 
-                              delay: index * 0.1, 
-                              type: "spring", 
-                              stiffness: 300, 
-                              damping: 25 
+                            transition={{
+                              delay: index * 0.1,
+                              type: "spring",
+                              stiffness: 300,
+                              damping: 25
                             }}
-                            whileHover={{ 
-                              scale: 1.02, 
+                            whileHover={{
+                              scale: 1.02,
                               y: -4,
                               transition: { type: "spring", stiffness: 400, damping: 25 }
                             }}
                             whileTap={{ scale: 0.98 }}
                           >
-                            <Card 
+                            <Card
                               className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
                               onClick={() => setSelectedCategory(category.id)}
                             >
                               <CardHeader>
                                 <CardTitle className="flex items-center space-x-2">
-                                  <span className="text-2xl">{category.icon}</span>
+                                  <span className="text-2xl"><category.icon className="inline-block" /></span>
                                   <span className="text-lg">{category.name}</span>
                                 </CardTitle>
                               </CardHeader>
@@ -324,7 +341,7 @@ export default function DataLibraryPage() {
                           </CardHeader>
                           <CardContent>
                             {documents.length === 0 ? (
-                              <motion.p 
+                              <motion.p
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.8 }}
@@ -333,8 +350,8 @@ export default function DataLibraryPage() {
                                 No documents uploaded yet
                               </motion.p>
                             ) : viewMode === 'list' ? (
-                              <DocumentsDataTable 
-                                documents={searchQuery ? filteredDocuments.slice(0, 10) : documents.slice(0, 10)} 
+                              <DocumentsDataTable
+                                documents={searchQuery ? filteredDocuments.slice(0, 10) : documents.slice(0, 10)}
                                 onDocumentDeleted={loadDocuments}
                               />
                             ) : (
@@ -344,11 +361,11 @@ export default function DataLibraryPage() {
                                     key={doc.doc_id}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    transition={{ 
-                                      delay: 0.8 + index * 0.1, 
-                                      type: "spring", 
-                                      stiffness: 300, 
-                                      damping: 25 
+                                    transition={{
+                                      delay: 0.8 + index * 0.1,
+                                      type: "spring",
+                                      stiffness: 300,
+                                      damping: 25
                                     }}
                                     whileHover={{ scale: 1.02, x: 4 }}
                                     whileTap={{ scale: 0.98 }}
@@ -382,7 +399,7 @@ export default function DataLibraryPage() {
                     </motion.div>
                   ) : (
                     // Category-specific Content
-                    <motion.div 
+                    <motion.div
                       key="category"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -393,10 +410,10 @@ export default function DataLibraryPage() {
                       {(() => {
                         const category = documentCategories.find(cat => cat.id === selectedCategory);
                         if (!category) return null;
-                        
+
                         return (
                           <>
-                            <motion.div 
+                            <motion.div
                               initial={{ opacity: 0, y: 20 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ type: "spring", stiffness: 300, damping: 25 }}
@@ -404,7 +421,7 @@ export default function DataLibraryPage() {
                             >
                               <div>
                                 <h2 className="text-2xl font-bold flex items-center space-x-2">
-                                  <span>{category.icon}</span>
+                                  <span><category.icon className="h-6 w-6" /></span>
                                   <span>{category.name}</span>
                                 </h2>
                                 <p className="text-muted-foreground">{category.description}</p>
@@ -434,13 +451,13 @@ export default function DataLibraryPage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 25 }}
                               >
-                                <DocumentsDataTable 
-                                  documents={getCurrentCategoryDocuments(category.id)} 
+                                <DocumentsDataTable
+                                  documents={getCurrentCategoryDocuments(category.id)}
                                   onDocumentDeleted={loadDocuments}
                                 />
                               </motion.div>
                             ) : (
-                              <motion.div 
+                              <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.2 }}
@@ -451,20 +468,20 @@ export default function DataLibraryPage() {
                                     key={doc.doc_id}
                                     initial={{ opacity: 0, y: 20, scale: 0.9 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    transition={{ 
-                                      delay: 0.3 + index * 0.05, 
-                                      type: "spring", 
-                                      stiffness: 300, 
-                                      damping: 25 
+                                    transition={{
+                                      delay: 0.3 + index * 0.05,
+                                      type: "spring",
+                                      stiffness: 300,
+                                      damping: 25
                                     }}
-                                    whileHover={{ 
-                                      scale: 1.02, 
+                                    whileHover={{
+                                      scale: 1.02,
                                       y: -4,
                                       transition: { type: "spring", stiffness: 400, damping: 25 }
                                     }}
                                     whileTap={{ scale: 0.98 }}
                                   >
-                                    <Card 
+                                    <Card
                                       className="hover:shadow-md transition-shadow cursor-pointer"
                                       onClick={() => handleViewPdf(doc.doc_id ?? '', doc.filename ?? 'Unknown')}
                                     >

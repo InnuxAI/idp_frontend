@@ -2,6 +2,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { SchemaMetricCards } from "@/components/schema-metric-cards"
 import { SchemasDataTable } from "@/components/schemas-data-table"
 import { SiteHeader } from "@/components/site-header"
+import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator, BreadcrumbLink } from "@/components/ui/breadcrumb"
 import {
   SidebarInset,
   SidebarProvider,
@@ -19,7 +20,23 @@ export default function ExtractionSchemasPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SiteHeader />
+        <SiteHeader 
+          breadcrumb={
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink href="#" className="dark:text-zinc-400 dark:hover:text-zinc-200">
+                    Library
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden md:block dark:text-zinc-600" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="dark:text-zinc-100">Schema Library</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          }
+        />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">

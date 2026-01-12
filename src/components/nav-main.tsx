@@ -22,6 +22,7 @@ export function NavMain({
     url: string
     icon?: Icon
     disabled?: boolean
+    tooltip?: string
   }[]
 }) {
   const router = useRouter()
@@ -54,8 +55,8 @@ export function NavMain({
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               {item.disabled ? (
-                <SidebarMenuButton 
-                  tooltip={item.title}
+                <SidebarMenuButton
+                  tooltip={item.tooltip || item.title}
                   disabled={true}
                   className="opacity-50 cursor-not-allowed"
                 >
@@ -63,7 +64,7 @@ export function NavMain({
                   <span>{item.title}</span>
                 </SidebarMenuButton>
               ) : (
-                <SidebarMenuButton tooltip={item.title} asChild>
+                <SidebarMenuButton tooltip={item.tooltip || item.title} asChild>
                   <a href={item.url}>
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
@@ -73,7 +74,7 @@ export function NavMain({
             </SidebarMenuItem>
           ))}
           <SidebarMenuItem>
-            <SidebarMenuButton 
+            <SidebarMenuButton
               tooltip="Chat with Documents"
               asChild
             >

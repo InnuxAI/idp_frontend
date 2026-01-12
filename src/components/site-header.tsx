@@ -18,7 +18,11 @@ import { useRouter } from "next/navigation"
 import { Settings, LogOut, UserPlus, Shield } from "lucide-react"
 import Link from "next/link"
 
-export function SiteHeader() {
+interface SiteHeaderProps {
+  breadcrumb?: React.ReactNode
+}
+
+export function SiteHeader({ breadcrumb }: SiteHeaderProps) {
   const { user, logout } = useAuth()
   const router = useRouter()
 
@@ -45,13 +49,13 @@ export function SiteHeader() {
           orientation="vertical"
           className="mx-2 data-[orientation=vertical]:h-4"
         />
-        <h1 className="text-base font-medium">Intelligent Document Processor</h1>
+        {breadcrumb || <h1 className="text-base font-medium">Intelligent Document Processor</h1>}
         <div className="ml-auto flex items-center gap-2">
           <Badge variant="outline" className="hidden sm:flex items-center gap-1">
             <span className="text-xs">⌘K</span>
             <span className="text-xs">Open Command</span>
           </Badge>
-          
+
           {/* Admin Panel Button */}
           {isAdmin && (
             <Button variant="outline" size="sm" asChild className="hidden sm:flex">

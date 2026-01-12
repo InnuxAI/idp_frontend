@@ -1,21 +1,18 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { motion } from "motion/react"
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useAuth } from '@/contexts/AuthContext'
-import { LoginFormData, loginSchema } from '@/lib/auth-types'
-
-import { ShaderAnimation } from '../ui/shader-animation'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useAuth } from "@/contexts/AuthContext"
+import { LoginFormData, loginSchema } from "@/lib/auth-types"
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -25,8 +22,8 @@ export function LoginForm() {
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
       remember_me: false,
     },
   })
@@ -36,66 +33,131 @@ export function LoginForm() {
       await login(data.email, data.password, data.remember_me)
       // Small delay to ensure auth state is updated
       setTimeout(() => {
-        router.push('/dashboard')
+        router.push("/dashboard")
       }, 100)
     } catch (error) {
       // Error is handled by context (toast shown)
-      console.error('Login error:', error)
+      console.error("Login error:", error)
     }
   }
 
   return (
-    <div className="relative min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4 overflow-hidden">
-      {/* Shader Animation Background */}
-      <div className="absolute inset-0 w-full h-full">
-        <ShaderAnimation />
+    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
+      {/* Left Side - Visuals */}
+      <div className="relative hidden h-full flex-col bg-zinc-900 p-10 text-white lg:flex">
+        {/* Gradient Background */}
+        {/* <div className="absolute inset-0 bg-linear-to-br from-zinc-900 via-zinc-800 to-black" /> */}
+
+        <div className="absolute inset-0 overflow-hidden">
+          <motion.img
+            initial={{ height: "200%", scale: 1, y: 0 }}
+            animate={{
+              height: "100%",
+              scale: [1, 1.2, 1],
+              y: [0, -110, 0]
+            }}
+            transition={{
+              height: { duration: 1.5, ease: [0.22, 1, 0.36, 1] },
+              scale: { duration: 10, repeat: Infinity, ease: "easeInOut" },
+              y: { duration: 8, repeat: Infinity, ease: "easeInOut" }
+            }}
+            src="/herogradient.webp"
+            alt="Gradient"
+            className="w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-linear-to-b from-transparent via-black/30 to-black/70" />
+        </div>
+
+        {/* Logo */}
+        <div className="relative z-20 flex items-center text-lg font-medium">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="flex items-center gap-2"
+          >
+            <img src="/innuxlogo.svg" alt="Innux Logo" className="h-8 w-auto" />
+            <span className="font-bold tracking-tight text-xl text-black">Innux AI</span>
+          </motion.div>
+        </div>
+
+        {/* Tagline */}
+        <div className="relative z-20 mt-auto">
+          <motion.blockquote
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+            className="space-y-2"
+          >
+            <p className="text-lg font-light leading-relaxed text-zinc-300">
+              &ldquo;Your intelligent thinking partner for document processing and knowledge extraction. Experience the power of AI-driven insights.&rdquo;
+            </p>
+          </motion.blockquote>
+        </div>
       </div>
-      
-      {/* Login Card Content */}
-      <div className="relative z-10 w-full max-w-md">
-        <div className="bg-[#171717]/90 backdrop-blur-sm border-[#262626] rounded-lg p-8 border shadow-lg">
-          <div className="space-y-6">
-            <div className="text-center space-y-2">
-              <h1 className="text-2xl font-bold text-[#fafafa]">Sign In</h1>
-              <p className="text-[#a3a3a3]">Enter your credentials to access your account</p>
-            </div>
-            
+
+      {/* Right Side - Form */}
+      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-black">
+        <div className="mx-auto w-full max-w-[400px] space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="flex flex-col space-y-2 text-center"
+          >
+            <h1 className="text-2xl font-semibold tracking-tight text-white">
+              Welcome back
+            </h1>
+            <p className="text-sm text-zinc-400">
+              Enter your credentials to access your account
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+          >
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm text-[#fafafa]">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  autoComplete="email"
-                  {...form.register('email')}
-                  className={`h-11 border focus:ring-1 bg-[#262626] text-[#fafafa] border-[#404040] placeholder:text-[#71717a] focus:border-[#3b82f6] ${
-                    form.formState.errors.email ? 'border-red-500' : ''
-                  }`}
-                />
+                <Label htmlFor="email" className="text-zinc-300">Email</Label>
+                <div className="relative group">
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="name@example.com"
+                    autoComplete="email"
+                    {...form.register("email")}
+                    className={`h-11 bg-zinc-900/50 border-zinc-800 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-200 ${form.formState.errors.email ? "border-red-500 focus:border-red-500" : ""
+                      }`}
+                  />
+                </div>
                 {form.formState.errors.email && (
-                  <p className="text-sm text-red-400">{form.formState.errors.email.message}</p>
+                  <p className="text-sm text-red-400 mt-1">
+                    {form.formState.errors.email.message}
+                  </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm text-[#fafafa]">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-zinc-300">Password</Label>
+                </div>
                 <div className="relative">
                   <Input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     autoComplete="current-password"
-                    {...form.register('password')}
-                    className={`pr-10 h-11 border focus:ring-1 bg-[#262626] text-[#fafafa] border-[#404040] placeholder:text-[#71717a] focus:border-[#3b82f6] ${
-                      form.formState.errors.password ? 'border-red-500' : ''
-                    }`}
+                    {...form.register("password")}
+                    className={`h-11 pr-10 bg-zinc-900/50 border-zinc-800 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-200 ${form.formState.errors.password ? "border-red-500 focus:border-red-500" : ""
+                      }`}
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 text-[#71717a] hover:bg-[#404040]"
+                    className="absolute right-0 top-0 h-full px-3 py-2 text-zinc-400 hover:text-white hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
                     tabIndex={-1}
                   >
@@ -107,13 +169,15 @@ export function LoginForm() {
                   </Button>
                 </div>
                 {form.formState.errors.password && (
-                  <p className="text-sm text-red-400">{form.formState.errors.password.message}</p>
+                  <p className="text-sm text-red-400 mt-1">
+                    {form.formState.errors.password.message}
+                  </p>
                 )}
               </div>
 
               <Button
                 type="submit"
-                className="w-full font-medium h-11 bg-[#3b82f6] text-[#fafafa] hover:bg-[#2563eb]"
+                className="w-full h-11 bg-blue-600 hover:bg-blue-500 text-white font-medium transition-all duration-200 shadow-lg shadow-blue-900/20"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -122,33 +186,30 @@ export function LoginForm() {
                     Signing in...
                   </>
                 ) : (
-                  'Sign In'
+                  "Sign In"
                 )}
               </Button>
             </form>
 
-            <div className="text-center space-y-3">
-              <p className="text-sm text-[#a3a3a3]">
-                Don't have an account?{' '}
+            <div className="mt-6 text-center space-y-4">
+              <p className="text-sm text-zinc-400">
+                Don&apos;t have an account?{" "}
                 <Link
                   href="/signup/form"
-                  className="font-medium hover:underline text-[#3b82f6]"
+                  className="font-medium text-blue-400 hover:text-blue-300 hover:underline transition-colors"
                 >
                   Sign up
                 </Link>
               </p>
-              
-              <p className="text-sm text-[#a3a3a3]">
-                Want secure signup?{' '}
-                <Link
-                  href="/signup/otp"
-                  className="font-medium hover:underline text-[#3b82f6]"
-                >
-                  OTP Verification
-                </Link>
-              </p>
+
+              <Link
+                href="/signup/otp"
+                className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors block"
+              >
+                Want secure signup with OTP?
+              </Link>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

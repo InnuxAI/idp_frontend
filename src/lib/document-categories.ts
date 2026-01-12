@@ -1,31 +1,46 @@
+import {
+  IconFileInvoice,
+  IconInvoice,
+  IconContract,
+  IconReceiptRupeeFilled,
+} from '@tabler/icons-react';
+
+
 export const documentCategories = [
-  { 
-    id: 'purchase-order', 
-    name: 'Purchase Order', 
-    icon: '📝', 
+  {
+    id: 'purchase-order',
+    name: 'Purchase Order',
+    icon: IconFileInvoice,
     description: 'Purchase orders documents',
     color: '#ADF81D' // Bright lime green
   },
-  { 
-    id: 'invoice', 
-    name: 'Invoice', 
-    icon: '🧾', 
-    description: 'Invoices and billing documents',
+  {
+    id: 'invoice',
+    name: 'Invoice',
+    icon: IconInvoice,
+    description: 'Invoices and Bills',
     color: '#1de9f8' // Bright cyan
   },
-  { 
-    id: 'contract', 
-    name: 'Contract', 
-    icon: '📋', 
+  {
+    id: 'contract',
+    name: 'Contract',
+    icon: IconContract,
     description: 'Contracts and agreements',
     color: '#921df8' // Purple
   },
-  { 
-    id: 'financial', 
-    name: 'Financial Documents', 
-    icon: '💰', 
-    description: 'Financial statements and reports',
+  {
+    id: 'financial',
+    name: 'Financial',
+    icon: IconReceiptRupeeFilled,
+    description: 'Financials and Reports',
     color: '#f8e21d' // Golden yellow
+  },
+  {
+    id: 'other',
+    name: 'Others',
+    icon: IconReceiptRupeeFilled,
+    description: 'Other documents',
+    color: '#6d6d6dff' // Golden yellow
   }
 ];
 
@@ -42,7 +57,7 @@ export const categorizeDocument = (filename: string): string => {
 // Get category color by category ID
 export const getCategoryColor = (categoryId: string): string => {
   const category = documentCategories.find(cat => cat.id === categoryId);
-  return category?.color || '#64748b'; // Default gray color for 'other'
+  return category?.color || '#98b0d0ff'; // Default gray color for 'other'
 };
 
 // Get category by ID

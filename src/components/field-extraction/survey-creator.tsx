@@ -256,12 +256,34 @@ export function SurveyCreator({ onSurveyChange, onFieldDefinitionsChange }: Surv
             Field List ({fields.length})
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="form" className="mt-6">
           <Card>
             <CardContent className="p-6 space-y-6 overflow-y-auto">
               {/* Basic Information */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">
+                    Display Label
+                  </Label>
+                  <Input
+                    value={currentField.label}
+                    onChange={(e) => {
+                      const label = e.target.value;
+                      const name = label.toLowerCase().replace(/\s+/g, '_');
+                      setCurrentField((prev) => ({
+                        ...prev,
+                        label,
+                        name,
+                      }));
+                    }}
+                    placeholder="Company Name"
+                    className="h-9"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Human-readable field name
+                  </p>
+                </div>
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">
                     Field Name
@@ -279,25 +301,6 @@ export function SurveyCreator({ onSurveyChange, onFieldDefinitionsChange }: Surv
                   />
                   <p className="text-xs text-muted-foreground">
                     Use lowercase with underscores
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">
-                    Display Label
-                  </Label>
-                  <Input
-                    value={currentField.label}
-                    onChange={(e) =>
-                      setCurrentField((prev) => ({
-                        ...prev,
-                        label: e.target.value,
-                      }))
-                    }
-                    placeholder="Company Name"
-                    className="h-9"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Human-readable field name
                   </p>
                 </div>
                 <div className="space-y-2">
