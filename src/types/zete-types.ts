@@ -3,6 +3,8 @@ export interface DocumentMetadata {
     id: string;
     parent?: string;
     type: 'MSA' | 'SOW' | 'Invoice' | 'Addendum' | 'Unknown';
+    file_path?: string;
+    title?: string;
 }
 
 export interface DocumentContent {
