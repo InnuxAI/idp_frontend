@@ -101,19 +101,25 @@ export default function DataLibraryPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SiteHeader 
+        <SiteHeader
           breadcrumb={
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#" className="dark:text-zinc-400 dark:hover:text-zinc-200">
-                    Library
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block dark:text-zinc-600" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage className="dark:text-zinc-100">Data Library</BreadcrumbPage>
-                </BreadcrumbItem>
+                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
+                  <BreadcrumbItem className="hidden md:block">
+                    <BreadcrumbLink href="#" className="dark:text-zinc-400 dark:hover:text-zinc-200">
+                      Library
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                </motion.div>
+                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
+                  <BreadcrumbSeparator className="hidden md:block dark:text-zinc-600" />
+                </motion.div>
+                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+                  <BreadcrumbItem>
+                    <BreadcrumbPage className="dark:text-zinc-100">Data Library</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </motion.div>
               </BreadcrumbList>
             </Breadcrumb>
           }
@@ -133,7 +139,7 @@ export default function DataLibraryPage() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 25 }}
-                      className="text-3xl font-bold"
+                      className="text-4xl font-bold tracking-light text-foreground"
                     >
                       Data Library
                     </motion.h1>
@@ -141,7 +147,7 @@ export default function DataLibraryPage() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 25 }}
-                      className="text-muted-foreground"
+                      className="text-lg text-muted-foreground"
                     >
                       Manage and browse your document collection
                     </motion.p>
@@ -375,7 +381,7 @@ export default function DataLibraryPage() {
                                     <div className="flex items-center space-x-3">
                                       <FileText className="h-5 w-5 text-muted-foreground" />
                                       <div>
-                                        <p className="text-sm font-medium">{doc.filename}</p>
+                                        <p className="text-sm font-medium">{doc.filename.substring(9)}</p>
                                         <div className="flex items-center space-x-2 mt-1">
                                           <Badge variant="outline" className="text-xs">
                                             {doc.content_type.includes('pdf') ? 'PDF' : 'Word'}
@@ -489,7 +495,7 @@ export default function DataLibraryPage() {
                                         <div className="space-y-2">
                                           <FileText className="h-5 w-5 text-muted-foreground" />
                                           <div>
-                                            <p className="text-sm font-medium truncate">{doc.filename}</p>
+                                            <p className="text-sm font-medium truncate">{doc.filename.substring(9)}</p>
                                             <div className="flex items-center space-x-2 mt-1">
                                               <Badge variant="outline" className="text-xs">
                                                 {doc.content_type.includes('pdf') ? 'PDF' : 'Word'}

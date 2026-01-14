@@ -1,5 +1,6 @@
 "use client"
 
+import { motion } from "motion/react"
 import {
   IconDots,
   IconFolder,
@@ -27,6 +28,9 @@ import {
 
 export function NavDocuments({
   items,
+  label = "Documents",
+  startIndex = 0,
+  onLinkClick,
 }: {
   items: {
     name: string
@@ -35,31 +39,53 @@ export function NavDocuments({
     disabled?: boolean
     tooltip?: string
   }[]
+  label?: string
+  startIndex?: number
+  onLinkClick?: () => void
 }) {
   const { isMobile } = useSidebar()
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Documents</SidebarGroupLabel>
+      <SidebarGroupLabel>
+        <motion.span
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: Math.max(0, startIndex - 1) * 0.05 }}
+        >
+          {label}
+        </motion.span>
+      </SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
+        {items.map((item, index) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton
-              asChild={!item.disabled}
+              asChild
               disabled={item.disabled}
               className={item.disabled ? "opacity-50 cursor-not-allowed" : undefined}
               tooltip={item.tooltip || item.name}
             >
               {item.disabled ? (
-                <span className="flex items-center gap-2">
+                <motion.span
+                  className="flex items-center gap-2"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: (startIndex + index) * 0.05 }}
+                >
                   <item.icon />
                   <span>{item.name}</span>
-                </span>
+                </motion.span>
               ) : (
-                <a href={item.name === 'Data Library' ? '/data-library' : item.url}>
+                <motion.a
+                  href={item.name === 'Data Library' ? '/data-library' : item.url}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: (startIndex + index) * 0.05 }}
+                  onClick={onLinkClick}
+                >
                   <item.icon />
                   <span>{item.name}</span>
-                </a>
+                </motion.a>
               )}
             </SidebarMenuButton>
             <DropdownMenu>
@@ -101,9 +127,15 @@ export function NavDocuments({
           </SidebarMenuItem>
         ))}
         <SidebarMenuItem>
-          <SidebarMenuButton className="text-sidebar-foreground/70">
-            <IconDots className="text-sidebar-foreground/70" />
-            <span>More</span>
+          <SidebarMenuButton className="text-sidebar-foreground/70" asChild>
+            <motion.button
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: (startIndex + items.length) * 0.05 }}
+            >
+              <IconDots className="text-sidebar-foreground/70" />
+              <span>More</span>
+            </motion.button>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

@@ -162,8 +162,8 @@ export function SurveyCreator({ onSurveyChange, onFieldDefinitionsChange }: Surv
       {/* Header with JSON Toggle */}
       <div className="flex justify-between items-start">
         <div className="space-y-1">
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-            Field Builder
+          <h2 className="text-2xl font-medium tracking-tight text-foreground">
+            Schema Builder
           </h2>
           <p className="text-sm text-muted-foreground">
             Create and configure extraction fields for your documents

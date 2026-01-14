@@ -126,7 +126,7 @@ const createColumns = (onDelete: (doc: Document) => void): ColumnDef<Document>[]
             >
               <div className="flex items-center space-x-2">
                 <FileText className="h-4 w-4" />
-                <span className="truncate max-w-[200px]">{doc.filename}</span>
+                <span className="truncate max-w-[200px]">{doc.filename.substring(9)}</span>
               </div>
             </Button>
           </SheetTrigger>
@@ -157,9 +157,9 @@ const createColumns = (onDelete: (doc: Document) => void): ColumnDef<Document>[]
     accessorKey: "content_type",
     header: "Format",
     cell: ({ row }) => (
-      <div className="w-20">
+      <div>
         <Badge variant="outline" className="text-xs">
-          {row.original.content_type && row.original.content_type.includes('pdf') ? 'PDF' : 'Word'}
+          {row.original.content_type && row.original.content_type.includes('pdf') ? 'PDF' : 'Others'}
         </Badge>
       </div>
     ),
@@ -172,6 +172,20 @@ const createColumns = (onDelete: (doc: Document) => void): ColumnDef<Document>[]
         {formatFileSize(row.original.file_size)}
       </div>
     ),
+  },
+  {
+    accessorKey: "created_at",
+    header: "Uploaded",
+    cell: ({ row }) => {
+      const timestamp = row.original.created_at;
+      if (!timestamp) return <span className="text-muted-foreground">-</span>;
+      const date = new Date(timestamp * 1000);
+      return (
+        <span className="text-sm text-muted-foreground">
+          {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+        </span>
+      );
+    },
   },
   {
     accessorKey: "category",
@@ -224,7 +238,7 @@ export function DocumentsDataTable({ documents, onDocumentDeleted }: DocumentsDa
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([{ id: 'created_at', desc: true }]);
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,

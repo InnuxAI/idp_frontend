@@ -61,12 +61,12 @@ export function SchemaSelector({ onSchemaSelect, selectedSchemaId }: SchemaSelec
 
   if (loading || !schemas) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Select Schema</CardTitle>
-          <CardDescription>Choose an existing schema for field extraction</CardDescription>
+      <Card className="border-none shadow-none bg-transparent">
+        <CardHeader className="px-0 pt-0">
+          <CardTitle className="text-2xl font-medium tracking-tight text-foreground">Select Schema</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground">Choose an existing schema for field extraction</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-0">
           <div className="animate-pulse space-y-3">
             <div className="h-4 bg-muted rounded w-3/4"></div>
             <div className="h-4 bg-muted rounded w-1/2"></div>
@@ -96,8 +96,8 @@ export function SchemaSelector({ onSchemaSelect, selectedSchemaId }: SchemaSelec
   return (
     <Card className="border-none shadow-none bg-transparent">
       <CardHeader className="px-0 pt-0">
-        <CardTitle className="text-xl text-foreground">Select Schema</CardTitle>
-        <CardDescription>Choose an existing schema for field extraction</CardDescription>
+        <CardTitle className="text-2xl font-medium tracking-tight text-foreground">Select Schema</CardTitle>
+        <CardDescription className="text-sm text-muted-foreground">Choose an existing schema for field extraction</CardDescription>
       </CardHeader>
       <CardContent className="px-0 space-y-4">
         <Select

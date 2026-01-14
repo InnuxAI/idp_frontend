@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react'
 import { authAPI } from '@/lib/auth-api'
-import { 
-  User, 
+import {
+  User,
   AuthContextType,
   LoginFormData,
   TraditionalSignupFormData,
@@ -34,11 +34,11 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload }
     case 'SET_USER':
-      return { 
-        ...state, 
-        user: action.payload, 
+      return {
+        ...state,
+        user: action.payload,
         isAuthenticated: !!action.payload,
-        isLoading: false 
+        isLoading: false
       }
     case 'SET_AUTHENTICATED':
       return { ...state, isAuthenticated: action.payload }
@@ -71,7 +71,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const initializeAuth = async () => {
       dispatch({ type: 'SET_LOADING', payload: true })
-      
+
       try {
         const token = authAPI.getToken()
         if (!token) {
@@ -103,9 +103,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = async (email: string, password: string, rememberMe = false) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true })
-      
+
       const response = await authAPI.login({ email, password, remember_me: rememberMe })
-      
+
       if (response.success && response.data?.user) {
         dispatch({ type: 'SET_USER', payload: response.data.user })
         toast.success('Login successful!')
@@ -137,15 +137,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const traditionalSignup = async (email: string, password: string, confirmPassword: string, firstName: string, lastName: string) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true })
-      
-      const response = await authAPI.traditionalSignup({ 
-        email, 
-        password, 
-        confirmPassword, 
-        firstName, 
-        lastName 
+
+      const response = await authAPI.traditionalSignup({
+        email,
+        password,
+        confirmPassword,
+        firstName,
+        lastName
       })
-      
+
       if (response.success) {
         // Check if account is pending approval
         if (response.data?.status === 'pending_approval') {
@@ -175,7 +175,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const otpSignup = async (email: string) => {
     try {
       const response = await authAPI.otpSignup({ email })
-      
+
       if (response.success) {
         toast.success('OTP sent to your email!')
       } else {
@@ -191,9 +191,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const verifyOTP = async (email: string, otp: string, password: string, firstName: string, lastName: string) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true })
-      
+
       const response = await authAPI.verifyOTP({ email, otp, password, firstName, lastName })
-      
+
       if (response.success) {
         // Check if account is pending approval
         if (response.data?.status === 'pending_approval') {
@@ -220,12 +220,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Reset password function
   const resetPassword = async (token: string, newPassword: string) => {
     try {
-      const response = await authAPI.resetPassword({ 
-        token, 
-        newPassword, 
-        confirmPassword: newPassword 
+      const response = await authAPI.resetPassword({
+        token,
+        newPassword,
+        confirmPassword: newPassword
       })
-      
+
       if (response.success) {
         toast.success('Password reset successfully!')
       } else {
@@ -241,7 +241,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const forgotPassword = async (email: string) => {
     try {
       const response = await authAPI.forgotPassword({ email })
-      
+
       if (response.success) {
         toast.success('Reset link sent to your email!')
       } else {

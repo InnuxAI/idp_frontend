@@ -655,7 +655,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
               isRecording ? "opacity-0 invisible h-0" : "opacity-100 visible"
             )}
           >
-            <PromptInputAction tooltip="Upload image">
+            {/* <PromptInputAction tooltip="Upload image">
               <button
                 onClick={() => uploadInputRef.current?.click()}
                 className="flex h-8 w-8 text-[#9CA3AF] cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-gray-600/30 hover:text-[#D1D5DB]"
@@ -673,27 +673,21 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
                   accept="image/*"
                 />
               </button>
-            </PromptInputAction>
+            </PromptInputAction> */}
 
-            <div className="flex items-center">
+            <div className="flex items-center opacity-50">
               <button
                 type="button"
-                onClick={() => handleToggleChange("search")}
+                disabled
                 className={cn(
-                  "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-8",
+                  "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-8 cursor-not-allowed",
                   showSearch
                     ? "bg-[#1EAEDB]/15 border-[#1EAEDB] text-[#1EAEDB]"
-                    : "bg-transparent border-transparent text-[#9CA3AF] hover:text-[#D1D5DB]"
+                    : "bg-transparent border-transparent text-[#9CA3AF]"
                 )}
               >
                 <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-                  <motion.div
-                    animate={{ rotate: showSearch ? 360 : 0, scale: showSearch ? 1.1 : 1 }}
-                    whileHover={{ rotate: showSearch ? 360 : 15, scale: 1.1, transition: { type: "spring", stiffness: 300, damping: 10 } }}
-                    transition={{ type: "spring", stiffness: 260, damping: 25 }}
-                  >
-                    <Globe className={cn("w-4 h-4", showSearch ? "text-[#1EAEDB]" : "text-inherit")} />
-                  </motion.div>
+                  <Globe className={cn("w-4 h-4", showSearch ? "text-[#1EAEDB]" : "text-inherit")} />
                 </div>
                 <AnimatePresence>
                   {showSearch && (
@@ -714,22 +708,16 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
 
               <button
                 type="button"
-                onClick={() => handleToggleChange("think")}
+                disabled
                 className={cn(
-                  "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-8",
+                  "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-8 cursor-not-allowed",
                   showThink
                     ? "bg-[#8B5CF6]/15 border-[#8B5CF6] text-[#8B5CF6]"
-                    : "bg-transparent border-transparent text-[#9CA3AF] hover:text-[#D1D5DB]"
+                    : "bg-transparent border-transparent text-[#9CA3AF]"
                 )}
               >
                 <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-                  <motion.div
-                    animate={{ rotate: showThink ? 360 : 0, scale: showThink ? 1.1 : 1 }}
-                    whileHover={{ rotate: showThink ? 360 : 15, scale: 1.1, transition: { type: "spring", stiffness: 300, damping: 10 } }}
-                    transition={{ type: "spring", stiffness: 260, damping: 25 }}
-                  >
-                    <BrainCog className={cn("w-4 h-4", showThink ? "text-[#8B5CF6]" : "text-inherit")} />
-                  </motion.div>
+                  <BrainCog className={cn("w-4 h-4", showThink ? "text-[#8B5CF6]" : "text-inherit")} />
                 </div>
                 <AnimatePresence>
                   {showThink && (
@@ -750,22 +738,16 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
 
               <button
                 type="button"
-                onClick={() => handleToggleChange("streaming")}
+                disabled
                 className={cn(
-                  "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-8",
+                  "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-8 cursor-not-allowed",
                   showStreaming
                     ? "bg-[#10B981]/15 border-[#10B981] text-[#10B981]"
-                    : "bg-transparent border-transparent text-[#9CA3AF] hover:text-[#D1D5DB]"
+                    : "bg-transparent border-transparent text-[#9CA3AF]"
                 )}
               >
                 <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-                  <motion.div
-                    animate={{ rotate: showStreaming ? 360 : 0, scale: showStreaming ? 1.1 : 1 }}
-                    whileHover={{ rotate: showStreaming ? 360 : 15, scale: 1.1, transition: { type: "spring", stiffness: 300, damping: 10 } }}
-                    transition={{ type: "spring", stiffness: 260, damping: 25 }}
-                  >
-                    <Zap className={cn("w-4 h-4", showStreaming ? "text-[#10B981]" : "text-inherit")} />
-                  </motion.div>
+                  <Zap className={cn("w-4 h-4", showStreaming ? "text-[#10B981]" : "text-inherit")} />
                 </div>
                 <AnimatePresence>
                   {showStreaming && (
@@ -786,22 +768,16 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
 
               <button
                 type="button"
-                onClick={handleCanvasToggle}
+                disabled
                 className={cn(
-                  "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-8",
+                  "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-8 cursor-not-allowed",
                   showCanvas
                     ? "bg-[#F97316]/15 border-[#F97316] text-[#F97316]"
-                    : "bg-transparent border-transparent text-[#9CA3AF] hover:text-[#D1D5DB]"
+                    : "bg-transparent border-transparent text-[#9CA3AF]"
                 )}
               >
                 <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-                  <motion.div
-                    animate={{ rotate: showCanvas ? 360 : 0, scale: showCanvas ? 1.1 : 1 }}
-                    whileHover={{ rotate: showCanvas ? 360 : 15, scale: 1.1, transition: { type: "spring", stiffness: 300, damping: 10 } }}
-                    transition={{ type: "spring", stiffness: 260, damping: 25 }}
-                  >
-                    <FolderCode className={cn("w-4 h-4", showCanvas ? "text-[#F97316]" : "text-inherit")} />
-                  </motion.div>
+                  <FolderCode className={cn("w-4 h-4", showCanvas ? "text-[#F97316]" : "text-inherit")} />
                 </div>
                 <AnimatePresence>
                   {showCanvas && (

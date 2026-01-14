@@ -129,7 +129,7 @@ export function DocumentsDialog({
                       variant="outline"
                       className="text-xs"
                     >
-                      {doc.filename}
+                      {doc.filename.substring(9)}
                     </Badge>
                   ))}
                 </div>
@@ -155,7 +155,7 @@ export function DocumentsDialog({
                   {filteredDocuments.map((doc, index) => (
                     <div key={doc.doc_id || `doc-${index}-${doc.filename}`} className="flex items-center justify-between p-3 border border-border rounded-lg">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{doc.filename}</p>
+                        <p className="text-sm font-medium truncate">{doc.filename.substring(9)}</p>
                         <div className="flex items-center space-x-2 mt-1">
                           <Badge variant="outline" className="text-xs">
                             {doc.content_type.includes('pdf') ? 'PDF' : 'Word'}

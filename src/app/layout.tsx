@@ -6,6 +6,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { GlobalKeyboardShortcuts } from "@/components/global-keyboard-shortcuts";
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "sonner"
+import { PreferencesProvider } from "@/contexts/preferences-context"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,13 +39,15 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            <DocumentProvider>
-              {children}
-              <GlobalKeyboardShortcuts />
-              <Toaster />
-            </DocumentProvider>
-          </AuthProvider>
+          <PreferencesProvider>
+            <AuthProvider>
+              <DocumentProvider>
+                {children}
+                <GlobalKeyboardShortcuts />
+                <Toaster />
+              </DocumentProvider>
+            </AuthProvider>
+          </PreferencesProvider>
         </ThemeProvider>
       </body>
     </html>

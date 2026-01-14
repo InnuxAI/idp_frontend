@@ -63,7 +63,7 @@ class AuthAPI {
         localStorage.setItem(this.tokenKey, token)
         localStorage.setItem(this.rememberKey, 'true')
         sessionStorage.removeItem(this.tokenKey)
-        
+
         // Set cookie for middleware (expires in 30 days)
         document.cookie = `auth_token=${token}; path=/; max-age=${30 * 24 * 60 * 60}; SameSite=strict`
       } else {
@@ -71,7 +71,7 @@ class AuthAPI {
         sessionStorage.setItem(this.tokenKey, token)
         localStorage.removeItem(this.tokenKey)
         localStorage.removeItem(this.rememberKey)
-        
+
         // Set session cookie for middleware
         document.cookie = `auth_token=${token}; path=/; SameSite=strict`
       }
@@ -80,18 +80,18 @@ class AuthAPI {
 
   getToken(): string | null {
     if (typeof window === 'undefined') return null
-    
+
     // First check session storage
     const sessionToken = sessionStorage.getItem(this.tokenKey)
     if (sessionToken) return sessionToken
-    
+
     // Then check localStorage if remember me was used
     const rememberMe = localStorage.getItem(this.rememberKey)
     if (rememberMe === 'true') {
       const localToken = localStorage.getItem(this.tokenKey)
       if (localToken) return localToken
     }
-    
+
     return null
   }
 
@@ -100,7 +100,7 @@ class AuthAPI {
       sessionStorage.removeItem(this.tokenKey)
       localStorage.removeItem(this.tokenKey)
       localStorage.removeItem(this.rememberKey)
-      
+
       // Remove cookie
       document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=strict'
     }
@@ -110,11 +110,11 @@ class AuthAPI {
   async login(data: LoginFormData): Promise<AuthResponse> {
     try {
       const response = await this.api.post<AuthResponse>('/auth/login', data)
-      
+
       if (response.data.success && response.data.data?.access_token) {
         this.setToken(response.data.data.access_token, data.remember_me)
       }
-      
+
       return response.data
     } catch (error) {
       throw this.handleError(error)
@@ -130,11 +130,11 @@ class AuthAPI {
         first_name: data.firstName,
         last_name: data.lastName,
       })
-      
+
       if (response.data.success && response.data.data?.access_token) {
         this.setToken(response.data.data.access_token)
       }
-      
+
       return response.data
     } catch (error) {
       throw this.handleError(error)
@@ -159,11 +159,11 @@ class AuthAPI {
         first_name: data.firstName,
         last_name: data.lastName,
       })
-      
+
       if (response.data.success && response.data.data?.access_token) {
         this.setToken(response.data.data.access_token)
       }
-      
+
       return response.data
     } catch (error) {
       throw this.handleError(error)
@@ -228,10 +228,10 @@ class AuthAPI {
 
   private handleError(error: any): Error {
     if (axios.isAxiosError(error)) {
-      const message = error.response?.data?.detail || 
-                    error.response?.data?.message || 
-                    error.message || 
-                    'An unexpected error occurred'
+      const message = error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message ||
+        'An unexpected error occurred'
       return new Error(message)
     }
     return new Error('An unexpected error occurred')

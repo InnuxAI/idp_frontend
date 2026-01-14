@@ -1,3 +1,6 @@
+"use client"
+
+import { motion } from "motion/react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SchemaMetricCards } from "@/components/schema-metric-cards"
 import { SchemasDataTable } from "@/components/schemas-data-table"
@@ -20,19 +23,25 @@ export default function ExtractionSchemasPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SiteHeader 
+        <SiteHeader
           breadcrumb={
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#" className="dark:text-zinc-400 dark:hover:text-zinc-200">
-                    Library
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block dark:text-zinc-600" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage className="dark:text-zinc-100">Schema Library</BreadcrumbPage>
-                </BreadcrumbItem>
+                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
+                  <BreadcrumbItem className="hidden md:block">
+                    <BreadcrumbLink href="#" className="dark:text-zinc-400 dark:hover:text-zinc-200">
+                      Library
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                </motion.div>
+                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
+                  <BreadcrumbSeparator className="hidden md:block dark:text-zinc-600" />
+                </motion.div>
+                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+                  <BreadcrumbItem>
+                    <BreadcrumbPage className="dark:text-zinc-100">Schema Library</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </motion.div>
               </BreadcrumbList>
             </Breadcrumb>
           }

@@ -1,3 +1,6 @@
+'use client'
+
+import { motion } from "motion/react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { DataTable } from "@/components/data-table"
@@ -15,12 +18,14 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
+import { PageGuard } from "@/components/auth/PageGuard"
 
 import data from "./data.json"
 
-export default function Page() {
+function DashboardContent() {
   return (
     <SidebarProvider
+      defaultOpen={false}
       style={
         {
           "--sidebar-width": "calc(var(--spacing) * 72)",
@@ -34,15 +39,21 @@ export default function Page() {
           breadcrumb={
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#" className="dark:text-zinc-400 dark:hover:text-zinc-200">
-                    Platform
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block dark:text-zinc-600" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage className="dark:text-zinc-100">Dashboard</BreadcrumbPage>
-                </BreadcrumbItem>
+                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
+                  <BreadcrumbItem className="hidden md:block">
+                    <BreadcrumbLink href="#" className="dark:text-zinc-400 dark:hover:text-zinc-200">
+                      Platform
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                </motion.div>
+                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
+                  <BreadcrumbSeparator className="hidden md:block dark:text-zinc-600" />
+                </motion.div>
+                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+                  <BreadcrumbItem>
+                    <BreadcrumbPage className="dark:text-zinc-100">Dashboard</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </motion.div>
               </BreadcrumbList>
             </Breadcrumb>
           }
@@ -60,5 +71,14 @@ export default function Page() {
         </div>
       </SidebarInset>
     </SidebarProvider>
+  )
+}
+
+// Export with PageGuard to protect route
+export default function Page() {
+  return (
+    <PageGuard>
+      <DashboardContent />
+    </PageGuard>
   )
 }

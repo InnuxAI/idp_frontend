@@ -2,6 +2,7 @@
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { ChatInteractive } from "@/components/chat-timeline" // Import from NEW file
+import { motion } from "motion/react"
 import { SiteHeader } from "@/components/site-header"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator, BreadcrumbLink } from "@/components/ui/breadcrumb"
 import {
@@ -24,19 +25,37 @@ export default function ChatPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SiteHeader 
+        <SiteHeader
           breadcrumb={
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#" className="dark:text-zinc-400 dark:hover:text-zinc-200">
-                    Platform
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block dark:text-zinc-600" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage className="dark:text-zinc-100">Chat</BreadcrumbPage>
-                </BreadcrumbItem>
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <BreadcrumbItem className="hidden md:block">
+                    <BreadcrumbLink href="#" className="dark:text-zinc-400 dark:hover:text-zinc-200">
+                      Platform
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.15 }}
+                >
+                  <BreadcrumbSeparator className="hidden md:block dark:text-zinc-600" />
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <BreadcrumbItem>
+                    <BreadcrumbPage className="dark:text-zinc-100">Chat</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </motion.div>
               </BreadcrumbList>
             </Breadcrumb>
           }

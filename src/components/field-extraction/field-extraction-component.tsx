@@ -349,7 +349,7 @@ export function FieldExtractionComponent() {
           <motion.h1
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="text-4xl font-serif font-medium tracking-tight text-foreground"
+            className="text-4xl font-bold tracking-tight text-foreground"
           >
             Field Extraction
           </motion.h1>

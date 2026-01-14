@@ -5,6 +5,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
+import { motion } from "motion/react"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -16,6 +17,8 @@ import { useDocumentContext } from "@/contexts/document-context"
 
 export function NavMain({
   items,
+  startIndex = 0,
+  onLinkClick,
 }: {
   items: {
     title: string
@@ -24,6 +27,8 @@ export function NavMain({
     disabled?: boolean
     tooltip?: string
   }[]
+  startIndex?: number
+  onLinkClick?: () => void
 }) {
   const router = useRouter()
   const { setUploadModalOpen } = useDocumentContext()
@@ -36,39 +41,55 @@ export function NavMain({
             <SidebarMenuButton
               tooltip="Quick Create"
               className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
-              onClick={() => setUploadModalOpen(true)}
+              onClick={() => {
+                setUploadModalOpen(true)
+                onLinkClick?.()
+              }}
+              asChild
             >
-              <IconUpload />
-              <span>Quick Upload</span>
+              <motion.button
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: startIndex * 0.05 }}
+              >
+                <IconUpload />
+                <span>Quick Upload</span>
+              </motion.button>
             </SidebarMenuButton>
-            {/* <Button
-              size="icon"
-              className="size-8 group-data-[collapsible=icon]:opacity-0"
-              variant="outline"
-            >
-              <IconMail />  
-              <span className="sr-only">Inbox</span>
-            </Button> */}
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>
-          {items.map((item) => (
+          {items.map((item, index) => (
             <SidebarMenuItem key={item.title}>
               {item.disabled ? (
                 <SidebarMenuButton
                   tooltip={item.tooltip || item.title}
                   disabled={true}
                   className="opacity-50 cursor-not-allowed"
+                  asChild
                 >
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: (startIndex + 1 + index) * 0.05 }}
+                    className="flex items-center gap-2 w-full"
+                  >
+                    {item.icon && <item.icon />}
+                    <span>{item.title}</span>
+                  </motion.div>
                 </SidebarMenuButton>
               ) : (
                 <SidebarMenuButton tooltip={item.tooltip || item.title} asChild>
-                  <a href={item.url}>
+                  <motion.a
+                    href={item.url}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: (startIndex + 1 + index) * 0.05 }}
+                    onClick={onLinkClick}
+                  >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
-                  </a>
+                  </motion.a>
                 </SidebarMenuButton>
               )}
             </SidebarMenuItem>
@@ -78,10 +99,16 @@ export function NavMain({
               tooltip="Chat with Documents"
               asChild
             >
-              <a href="/chat">
+              <motion.a
+                href="/chat"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: (startIndex + 1 + items.length) * 0.05 }}
+                onClick={onLinkClick}
+              >
                 <IconMessageCircle />
                 <span>Chat</span>
-              </a>
+              </motion.a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

@@ -3,6 +3,7 @@ import {
   IconInvoice,
   IconContract,
   IconReceiptRupeeFilled,
+  IconClipboardFilled
 } from '@tabler/icons-react';
 
 
@@ -38,7 +39,7 @@ export const documentCategories = [
   {
     id: 'other',
     name: 'Others',
-    icon: IconReceiptRupeeFilled,
+    icon: IconClipboardFilled,
     description: 'Other documents',
     color: '#6d6d6dff' // Golden yellow
   }

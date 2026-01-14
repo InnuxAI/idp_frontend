@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { KnowledgeGraph } from "@/components/zete/KnowledgeGraph";
 import { DocumentPanel } from "@/components/zete/DocumentPanel";
 import { ChatPanel } from "@/components/zete/ChatPanel";
+import { ZeteUploadModal } from "@/components/zete/ZeteUploadModal";
 import { zeteApi } from "@/lib/zete-api";
 import { GraphData, GraphNode, DocumentDetails } from "@/types/zete-types";
 import { JsonTable } from "@/components/ui/json-table";
@@ -19,9 +20,10 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { IconMessageChatbot, IconFileDescription, IconGraph } from "@tabler/icons-react";
+import { IconMessageChatbot, IconFileDescription, IconUpload } from "@tabler/icons-react";
+import { PageGuard } from "@/components/auth/PageGuard";
 
-export default function ZetePage() {
+function ZetePageContent() {
     const [graphData, setGraphData] = useState<GraphData>({ nodes: [], links: [] });
     const [selectedDocument, setSelectedDocument] = useState<DocumentDetails | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -31,31 +33,40 @@ export default function ZetePage() {
     const [showChat, setShowChat] = useState(false);
     const [showDocument, setShowDocument] = useState(true);
 
+    // Upload modal state
+    const [showUploadModal, setShowUploadModal] = useState(false);
+
     // Metadata Tooltip State
     const [tooltipData, setTooltipData] = useState<{ x: number, y: number, content: any, isLoading: boolean } | null>(null);
 
+    // Fetch graph data function (extracted for reuse)
+    const fetchGraph = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            const data = await zeteApi.getGraphData();
+            setGraphData(data);
+        } catch (error: any) {
+            console.error("Failed to fetch graph data:", error);
+            if (error.response?.status === 500) {
+                setError("Knowledge Graph service is unavailable. Please check database connection.");
+            } else {
+                setError("Failed to load Knowledge Graph. Please try again later.");
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
     // Initial data fetch
     useEffect(() => {
-        const fetchGraph = async () => {
-            try {
-                setIsLoading(true);
-                setError(null);
-                const data = await zeteApi.getGraphData();
-                setGraphData(data);
-            } catch (error: any) {
-                console.error("Failed to fetch graph data:", error);
-                if (error.response?.status === 500) {
-                    setError("Knowledge Graph service is unavailable. Please check database connection.");
-                } else {
-                    setError("Failed to load Knowledge Graph. Please try again later.");
-                }
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
         fetchGraph();
-    }, []);
+    }, [fetchGraph]);
+
+    // Handle upload complete - refresh graph
+    const handleUploadComplete = useCallback(() => {
+        fetchGraph();
+    }, [fetchGraph]);
 
     // Close tooltip on click outside or regular click
     useEffect(() => {
@@ -138,6 +149,7 @@ export default function ZetePage() {
 
     return (
         <SidebarProvider
+            defaultOpen={false}
             style={
                 {
                     "--sidebar-width": "calc(var(--spacing) * 72)",
@@ -153,41 +165,61 @@ export default function ZetePage() {
                         <Separator orientation="vertical" className="mr-2 h-4 dark:bg-zinc-700" />
                         <Breadcrumb>
                             <BreadcrumbList>
-                                <BreadcrumbItem className="hidden md:block">
-                                    <BreadcrumbLink href="#" className="dark:text-zinc-400 dark:hover:text-zinc-200">
-                                        Knowledge Intelligence
-                                    </BreadcrumbLink>
-                                </BreadcrumbItem>
-                                <BreadcrumbSeparator className="hidden md:block dark:text-zinc-600" />
-                                <BreadcrumbItem>
-                                    <BreadcrumbPage className="dark:text-zinc-100">Zete Graph</BreadcrumbPage>
-                                </BreadcrumbItem>
+                                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
+                                    <BreadcrumbItem className="hidden md:block">
+                                        <BreadcrumbLink href="#" className="dark:text-zinc-400 dark:hover:text-zinc-200">
+                                            Knowledge Intelligence
+                                        </BreadcrumbLink>
+                                    </BreadcrumbItem>
+                                </motion.div>
+                                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
+                                    <BreadcrumbSeparator className="hidden md:block dark:text-zinc-600" />
+                                </motion.div>
+                                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+                                    <BreadcrumbItem>
+                                        <BreadcrumbPage className="dark:text-zinc-100">Zete Graph</BreadcrumbPage>
+                                    </BreadcrumbItem>
+                                </motion.div>
                             </BreadcrumbList>
                         </Breadcrumb>
                     </div>
 
-                    {/* Panel Toggle Buttons */}
-                    <div className="flex items-center gap-1 bg-gray-200 dark:bg-zinc-800 p-1 rounded-lg transition-colors">
-                        <button
-                            onClick={() => setShowChat(!showChat)}
-                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${showChat
-                                ? 'bg-white shadow text-gray-900 dark:bg-zinc-700 dark:text-zinc-100'
-                                : 'text-gray-500 hover:text-gray-700 dark:text-zinc-400 dark:hover:text-zinc-200'
-                                }`}
+                    {/* Upload Button + Panel Toggle Buttons */}
+                    <div className="flex items-center gap-3">
+                        {/* Upload Button - Separate from toggle */}
+                        <motion.button
+                            onClick={() => setShowUploadModal(true)}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white shadow-md shadow-orange-500/20 transition-colors"
                         >
-                            <IconMessageChatbot size={14} />
-                            <span className="hidden sm:inline">Chat</span>
-                        </button>
-                        <button
-                            onClick={() => setShowDocument(!showDocument)}
-                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${showDocument
-                                ? 'bg-white shadow text-gray-900 dark:bg-zinc-700 dark:text-zinc-100'
-                                : 'text-gray-500 hover:text-gray-700 dark:text-zinc-400 dark:hover:text-zinc-200'
-                                }`}
-                        >
-                            <IconFileDescription size={14} />
-                            <span className="hidden sm:inline">Document</span>
-                        </button>
+                            <IconUpload size={14} />
+                            <span className="hidden sm:inline">Upload</span>
+                        </motion.button>
+
+                        {/* Panel Toggle Buttons */}
+                        <div className="flex items-center gap-1 bg-gray-200 dark:bg-zinc-800 p-1 rounded-lg transition-colors">
+                            <button
+                                onClick={() => setShowChat(!showChat)}
+                                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${showChat
+                                    ? 'bg-white shadow text-gray-900 dark:bg-zinc-700 dark:text-zinc-100'
+                                    : 'text-gray-500 hover:text-gray-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+                                    }`}
+                            >
+                                <IconMessageChatbot size={14} />
+                                <span className="hidden sm:inline">Chat</span>
+                            </button>
+                            <button
+                                onClick={() => setShowDocument(!showDocument)}
+                                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${showDocument
+                                    ? 'bg-white shadow text-gray-900 dark:bg-zinc-700 dark:text-zinc-100'
+                                    : 'text-gray-500 hover:text-gray-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+                                    }`}
+                            >
+                                <IconFileDescription size={14} />
+                                <span className="hidden sm:inline">Document</span>
+                            </button>
+                        </div>
                     </div>
                 </header>
 
@@ -298,7 +330,23 @@ export default function ZetePage() {
                         )}
                     </div>
                 )}
+
+                {/* Upload Modal */}
+                <ZeteUploadModal
+                    isOpen={showUploadModal}
+                    onClose={() => setShowUploadModal(false)}
+                    onUploadComplete={handleUploadComplete}
+                />
             </SidebarInset>
         </SidebarProvider>
+    );
+}
+
+// Export with PageGuard to protect route
+export default function ZetePage() {
+    return (
+        <PageGuard>
+            <ZetePageContent />
+        </PageGuard>
     );
 }
