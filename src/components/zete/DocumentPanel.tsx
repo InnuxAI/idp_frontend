@@ -403,7 +403,7 @@ export function DocumentPanel({ document }: DocumentPanelProps) {
             {isBinaryFile(document.content) ? (
                 <div className="flex-1 min-h-0">
                     <UniversalDocumentViewer
-                        fileUrl={`http://localhost:8000/api/zete/documents/${document.id}/raw`}
+                        fileUrl={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/zete/documents/${document.id}/raw`}
                         fileName={document.metadata?.file_path || `${document.id}.unknown`}
                         title={document.metadata?.title || document.id}
                     />

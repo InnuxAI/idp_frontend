@@ -35,20 +35,26 @@ interface SchemaMetrics {
 }
 async function fetchSchemaMetrics(): Promise<SchemaMetrics> {
   try {
-        const response = await fetch(`${API_BASE_URL}/api/schemas/`);
+    const token = typeof window !== 'undefined'
+      ? (sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token'))
+      : null;
+
+    const response = await fetch(`${API_BASE_URL}/api/schemas/`, {
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    });
     if (!response.ok) throw new Error('Failed to fetch schemas');
-    
+
     const data = await response.json();
     const schemas = data.schemas;
-    
+
     const total_fields = schemas.reduce((sum: number, schema: Schema) => sum + schema.field_count, 0);
     const avg_fields = schemas.length > 0 ? Math.round(total_fields / schemas.length * 10) / 10 : 0;
-    
+
     // Find most recent schema
-    const mostRecent = schemas.length > 0 
-      ? schemas.reduce((latest: Schema, current: Schema) => 
-          new Date(current.created_at) > new Date(latest.created_at) ? current : latest
-        ).json_name
+    const mostRecent = schemas.length > 0
+      ? schemas.reduce((latest: Schema, current: Schema) =>
+        new Date(current.created_at) > new Date(latest.created_at) ? current : latest
+      ).json_name
       : 'None';
 
     return {
@@ -137,7 +143,7 @@ export function SchemaMetricCards() {
 
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-      
+
       {/* Total Schemas Card */}
       <Card className="@container/card">
         <CardHeader>
@@ -206,9 +212,9 @@ export function SchemaMetricCards() {
           </div>
           <div className="flex flex-wrap gap-2">
             {Object.entries(schemaTypes).map(([type, typeInfo]) => (
-              <Badge 
-                key={type} 
-                variant="secondary" 
+              <Badge
+                key={type}
+                variant="secondary"
                 className={`${typeInfo.color} border-0 font-medium`}
               >
                 {type}: {typeInfo.count}

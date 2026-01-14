@@ -6,6 +6,22 @@ const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
+// Add auth interceptor to include token in all requests
+api.interceptors.request.use(
+  (config) => {
+    if (typeof window !== 'undefined') {
+      const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 export interface Document {
   doc_id?: string;
   filename: string;
@@ -144,6 +160,8 @@ export const apiService = {
     const response = await api.get('/health');
     return response.data;
   },
+  baseUrl: API_BASE_URL,
+
 
   uploadDocument: async (file: File): Promise<UploadResponse> => {
     const formData = new FormData();
@@ -308,6 +326,14 @@ export const apiService = {
   getPdfUrl: (extractionId: number): string => {
     return `${API_BASE_URL}/api/extraction/pdf/${extractionId}`;
   },
+
+  fetchPdf: async (url: string): Promise<Blob> => {
+    const response = await api.get(url, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
 
   // Two-way match endpoints
   getExtractionsForMatching: async () => {

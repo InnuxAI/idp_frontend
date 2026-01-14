@@ -96,15 +96,8 @@ function ZetePageContent() {
         });
 
         try {
-            // Fetch metadata
-            // Using fetch directly since zeteApi might not have this method yet, or I should update zeteApi. 
-            // For now I'll use fetch to be self-contained in this change, 
-            // or better yet, I should check zete-api.ts but I don't want to switch files right now.
-            // Assuming relative path proxy or direct URL.
-            const response = await fetch(`http://localhost:8000/api/zete/graph/node/${node.id}/metadata`);
-            if (!response.ok) throw new Error("Failed to fetch metadata");
-
-            const metadata = await response.json();
+            // Fetch metadata using the API service which includes auth headers
+            const metadata = await zeteApi.getNodeMetadata(node.id);
 
             setTooltipData(prev => prev ? {
                 ...prev,

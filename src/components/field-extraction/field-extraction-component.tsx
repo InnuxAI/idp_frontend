@@ -299,10 +299,12 @@ export function FieldExtractionComponent() {
 
     setIsSaving(true);
     try {
+      const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
       const response = await fetch(`${API_BASE_URL}/api/schemas/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
         body: JSON.stringify({
           name: schemaName.trim(),

@@ -86,8 +86,8 @@ export default function DataLibraryPage() {
     setPdfViewerModal({ isOpen: true, docId, filename });
   };
 
-  const getPdfUrl = (docId: string) => {
-    return `${API_BASE_URL}/view-document/${docId}`;
+  const getPdfUrl = (filename: string) => {
+    return `${API_BASE_URL}/view-document/${filename}`;
   };
 
   return (
@@ -531,9 +531,9 @@ export default function DataLibraryPage() {
             Document: {pdfViewerModal.filename}
           </DialogTitle>
           <div className="flex-1 h-full">
-            {pdfViewerModal.docId && (
+            {pdfViewerModal.filename && (
               <iframe
-                src={getPdfUrl(pdfViewerModal.docId)}
+                src={getPdfUrl(pdfViewerModal.filename)}
                 className="w-full h-full border-0"
                 title={`PDF Viewer - ${pdfViewerModal.filename}`}
                 style={{ height: 'calc(95vh - 60px)' }}

@@ -20,6 +20,7 @@ import { apiService, Document, StreamEvent } from '@/services/api';
 import { ChatMessage } from './chat/chat-message';
 import { SourcePanel } from './chat/source-panel';
 import { Message } from './chat/types';
+import { ImageSourceModal } from './chat/image-source-modal';
 import { cn } from '@/lib/utils';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -97,6 +98,7 @@ export function ChatInteractive({
     const [documentsDialogOpen, setDocumentsDialogOpen] = useState(false);
     const [showSidebar, setShowSidebar] = useState(true);
     const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
+    const [viewingSource, setViewingSource] = useState<any>(null);
 
     // Keep track of the AbortController for the current stream
     const abortControllerRef = useRef<AbortController | null>(null);
@@ -239,11 +241,14 @@ export function ChatInteractive({
         }
     };
 
-    // Source Click Handler (Placeholder for now)
+    // Source Click Handler
     const handleSourceClick = (source: any) => {
-        // Open dialog or preview
-        console.log("Source clicked", source);
-        // Ideally we reuse a dialog here
+        if (source.type === 'image' || (source.filename && source.filename.match(/\.(jpg|jpeg|png|gif|webp)$/i))) {
+            setViewingSource(source);
+        } else {
+            console.log("Source clicked (non-image)", source);
+            // Handle text sources or others if needed
+        }
     };
 
     // --- RENDER ---
@@ -418,6 +423,13 @@ export function ChatInteractive({
                         setInternalSelectedDocuments(prev => [...prev, doc]);
                     }
                 }}
+            />
+
+            {/* Image Source Modal */}
+            <ImageSourceModal
+                isOpen={!!viewingSource}
+                onClose={() => setViewingSource(null)}
+                source={viewingSource}
             />
         </div>
     );

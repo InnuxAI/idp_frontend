@@ -60,6 +60,8 @@ import {
 } from '@tanstack/react-table';
 import { Document, apiService } from '@/services/api';
 import { categorizeDocument, getCategoryColor, documentCategories } from '@/lib/document-categories';
+import { AuthorizedPdfViewer } from '@/components/authorized-pdf-viewer';
+
 
 interface DocumentsDataTableProps {
   documents: Document[];
@@ -82,7 +84,7 @@ const getDocumentType = (filename: string) => {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 const getPdfUrl = (docId: string | undefined, filename: string) => {
-  return docId ? `${API_BASE_URL}/view-document/${docId}` : `${API_BASE_URL}/view-document/${filename}`;
+  return `${API_BASE_URL}/view-document/${filename}`;
 };
 
 const createColumns = (onDelete: (doc: Document) => void): ColumnDef<Document>[] => [
@@ -140,13 +142,13 @@ const createColumns = (onDelete: (doc: Document) => void): ColumnDef<Document>[]
               </SheetTitle>
             </SheetHeader>
             <div className="flex-1 h-full">
-              <iframe
-                src={getPdfUrl(doc.doc_id, doc.filename)}
-                className="w-full h-full border-0"
+              <AuthorizedPdfViewer
+                url={getPdfUrl(doc.doc_id, doc.filename)}
                 title={`PDF Viewer - ${doc.filename}`}
-                style={{ height: 'calc(100vh - 80px)' }}
+                className="h-[calc(100vh-80px)]"
               />
             </div>
+
           </SheetContent>
         </Sheet>
       );

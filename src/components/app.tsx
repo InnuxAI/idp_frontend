@@ -11,6 +11,8 @@ import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { apiService } from '@/services/api';
 import type { Document, QueryResponse } from '@/services/api';
+import { AuthorizedPdfViewer } from '@/components/authorized-pdf-viewer';
+
 
 function App() {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -75,7 +77,7 @@ function App() {
       }, 200);
 
       const response = await apiService.uploadDocument(file);
-      
+
       clearInterval(progressInterval);
       setUploadProgress(100);
 
@@ -109,10 +111,10 @@ function App() {
         contextualQuery = `${query} Context documents: ${contextInfo}`;
       }
 
-      const filename = selectedDocumentsForContext.length > 0 
+      const filename = selectedDocumentsForContext.length > 0
         ? selectedDocumentsForContext.map(doc => doc.filename).join(', ')
         : null;
-      
+
       const response = await apiService.queryDocuments(contextualQuery, filename);
       setQueryResponse(response);
     } catch (error) {
@@ -171,7 +173,7 @@ function App() {
   };
 
   const getPdfUrl = (docId: string) => {
-    return `http://localhost:8000/view-document/${docId}`;
+    return `${apiService.baseUrl}/view-document/${docId}`;
   };
 
   return (
@@ -187,18 +189,17 @@ function App() {
                 <p className="text-sm text-muted-foreground">AI-powered document analysis and chat</p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               {healthStatus && (
                 <div className="flex items-center space-x-2">
-                  <div className={`w-2 h-2 rounded-full ${
-                    healthStatus.gemini_available && healthStatus.embedder_available && healthStatus.chromadb_available
-                      ? 'bg-green-500' : 'bg-yellow-500'
-                  }`} />
+                  <div className={`w-2 h-2 rounded-full ${healthStatus.gemini_available && healthStatus.embedder_available && healthStatus.chromadb_available
+                    ? 'bg-green-500' : 'bg-yellow-500'
+                    }`} />
                   <span className="text-sm text-muted-foreground">System Status</span>
                 </div>
               )}
-              
+
               <Button
                 variant="outline"
                 onClick={() => setUploadModalOpen(true)}
@@ -207,7 +208,7 @@ function App() {
                 <Upload className="h-4 w-4" />
                 <span>Upload</span>
               </Button>
-              
+
               <Button
                 variant="outline"
                 size="icon"
@@ -249,7 +250,7 @@ function App() {
                     />
                   </div>
                 )}
-                
+
                 {/* Documents List */}
                 {documents.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">
@@ -263,7 +264,7 @@ function App() {
                   <div className="space-y-3 overflow-y-auto flex-1 pr-2">
                     {filteredDocuments.map((doc) => (
                       <div key={doc.doc_id} className="flex items-center justify-between p-3 border border-border rounded-lg">
-                        <div 
+                        <div
                           className={`flex-1 min-w-0 ${doc.content_type.includes('pdf') ? 'cursor-pointer hover:bg-muted/50 rounded p-2 -m-2' : ''}`}
                           onClick={() => doc.content_type.includes('pdf') && doc.doc_id && handleViewPdf(doc.doc_id, doc.filename)}
                         >
@@ -280,7 +281,7 @@ function App() {
                             )}
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center space-x-2">
                           {/* Add to Context Button */}
                           <Button
@@ -344,7 +345,7 @@ function App() {
                     disabled={isQuerying || documents.length === 0}
                     className="flex-1"
                   />
-                  <Button 
+                  <Button
                     onClick={handleQuery}
                     disabled={isQuerying || !query.trim() || documents.length === 0}
                   >
@@ -363,9 +364,9 @@ function App() {
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {selectedDocumentsForContext.map((doc) => (
-                        <Badge 
-                          key={doc.doc_id} 
-                          variant="outline" 
+                        <Badge
+                          key={doc.doc_id}
+                          variant="outline"
                           className="text-xs flex items-center space-x-1 pr-1"
                         >
                           <span className="truncate max-w-[120px]">{doc.filename}</span>
@@ -406,7 +407,7 @@ function App() {
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div className="min-h-[120px] bg-background border rounded-md p-4">
-                          <ReactMarkdown 
+                          <ReactMarkdown
                             components={{
                               // Custom styling for markdown elements
                               p: ({ children }) => <p className="mb-3 leading-relaxed text-foreground">{children}</p>,
@@ -425,7 +426,7 @@ function App() {
                             {queryResponse.answer}
                           </ReactMarkdown>
                         </div>
-                        
+
                         <div className="border-t border-border pt-4">
                           <h4 className="text-sm font-medium mb-3">Sources</h4>
                           <div className="space-y-3">
@@ -450,7 +451,7 @@ function App() {
                             ))}
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border">
                           <span>Method: {queryResponse.method}</span>
                           <span>{queryResponse.sources.length} source{queryResponse.sources.length !== 1 ? 's' : ''}</span>
@@ -554,13 +555,13 @@ function App() {
           </DialogTitle>
           <div className="flex-1 h-full">
             {pdfViewerModal.docId && (
-              <iframe
-                src={getPdfUrl(pdfViewerModal.docId)}
-                className="w-full h-full border-0"
+              <AuthorizedPdfViewer
+                url={getPdfUrl(pdfViewerModal.docId)}
                 title={`PDF Viewer - ${pdfViewerModal.filename}`}
-                style={{ height: 'calc(95vh - 60px)' }}
+                className="h-[calc(95vh-60px)]"
               />
             )}
+
           </div>
         </DialogContent>
       </Dialog>

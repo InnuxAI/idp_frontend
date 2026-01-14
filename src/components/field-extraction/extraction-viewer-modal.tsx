@@ -20,6 +20,8 @@ import { Badge } from '@/components/ui/badge';
 import { apiService, DataLibraryEntry } from '@/services/api';
 import { ExtractionEditor } from './extraction-editor';
 import { toast } from 'sonner';
+import { AuthorizedPdfViewer } from '@/components/authorized-pdf-viewer';
+
 
 interface ExtractionViewerModalProps {
     isOpen: boolean;
@@ -102,12 +104,12 @@ export function ExtractionViewerModal({
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                             </div>
                         ) : (
-                            <iframe
-                                src={apiService.getPdfUrl(extractionId)}
-                                className="w-full h-full border-0"
+                            <AuthorizedPdfViewer
+                                url={apiService.getPdfUrl(extractionId)}
                                 title="PDF Viewer"
                             />
                         )}
+
                     </div>
 
                     {/* Right Panel: Data Editor */}

@@ -75,9 +75,12 @@ export function SchemasDataTable() {
     const fetchSchemas = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`${API_BASE_URL}/api/schemas/`)
+        const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+        const response = await fetch(`${API_BASE_URL}/api/schemas/`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        })
         if (!response.ok) throw new Error('Failed to fetch schemas')
-        
+
         const data = await response.json()
         setSchemas(data.schemas)
       } catch (error) {
@@ -112,7 +115,7 @@ export function SchemasDataTable() {
     const blob = new Blob([JSON.stringify(dataToExport, null, 2)], {
       type: 'application/json'
     })
-    
+
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
@@ -288,7 +291,7 @@ export function SchemasDataTable() {
               </TableBody>
             </Table>
           </div>
-          
+
           {/* Summary footer */}
           {filteredSchemas.length > 0 && (
             <div className="flex items-center justify-between pt-4 text-sm text-muted-foreground">
@@ -317,7 +320,7 @@ export function SchemasDataTable() {
               Schema details and field definitions
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedSchema && (
             <ScrollArea className="max-h-[60vh] pr-4">
               <div className="space-y-6">
@@ -371,11 +374,11 @@ export function SchemasDataTable() {
                             {field.type}
                           </Badge>
                         </div>
-                        
+
                         {field.description && (
                           <p className="text-sm text-muted-foreground mt-1">{field.description}</p>
                         )}
-                        
+
                         {field.options && field.options.length > 0 && (
                           <div className="mt-2">
                             <span className="text-xs text-muted-foreground">Options: </span>

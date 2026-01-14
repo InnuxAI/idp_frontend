@@ -46,6 +46,7 @@ const MIME_MAP: Record<string, string> = {
  * UniversalDocumentViewer - Renders various document types using react-doc-viewer
  * 
  * Supports: PDF, Images, Office documents, and more.
+ * Uses authenticated fetch for protected endpoints.
  */
 const UniversalDocumentViewer = memo(function UniversalDocumentViewer({
     fileUrl,
@@ -55,6 +56,9 @@ const UniversalDocumentViewer = memo(function UniversalDocumentViewer({
 }: UniversalDocumentViewerProps) {
     // SSR-safe theme detection
     const [isDark, setIsDark] = useState(true);
+    const [blobUrl, setBlobUrl] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const checkDark = () => setIsDark(document.documentElement.classList.contains("dark"));
@@ -66,19 +70,62 @@ const UniversalDocumentViewer = memo(function UniversalDocumentViewer({
         return () => observer.disconnect();
     }, []);
 
+    // Fetch document with auth headers and create blob URL
+    useEffect(() => {
+        let currentBlobUrl: string | null = null;
+
+        const fetchDocument = async () => {
+            setLoading(true);
+            setError(null);
+
+            try {
+                // Get auth token
+                const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+
+                const response = await fetch(fileUrl, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to load document: ${response.status}`);
+                }
+
+                const blob = await response.blob();
+                currentBlobUrl = URL.createObjectURL(blob);
+                setBlobUrl(currentBlobUrl);
+            } catch (err) {
+                console.error('Failed to fetch document:', err);
+                setError(err instanceof Error ? err.message : 'Failed to load document');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDocument();
+
+        // Cleanup blob URL on unmount or URL change
+        return () => {
+            if (currentBlobUrl) {
+                URL.revokeObjectURL(currentBlobUrl);
+            }
+        };
+    }, [fileUrl]);
+
     // Build document array for viewer
     const docs = useMemo<IDocument[]>(() => {
+        if (!blobUrl) return [];
+
         const ext = getFileExtension(fileName);
         const mimeType = fileType || MIME_MAP[ext];
 
         return [
             {
-                uri: fileUrl,
+                uri: blobUrl,
                 fileName: fileName,
                 fileType: mimeType,
             },
         ];
-    }, [fileUrl, fileName, fileType]);
+    }, [blobUrl, fileName, fileType]);
 
     // Theme configuration
     const theme = useMemo<ITheme>(() => ({
@@ -149,18 +196,36 @@ const UniversalDocumentViewer = memo(function UniversalDocumentViewer({
 
             {/* Document viewer */}
             <div className="flex-1 min-h-0 relative">
-                <DocViewer
-                    documents={docs}
-                    pluginRenderers={DocViewerRenderers}
-                    theme={theme}
-                    config={config}
-                    style={{
-                        width: "100%",
-                        height: "100%",
-                        background: bgColor,
-                    }}
-                    className="document-viewer"
-                />
+                {loading ? (
+                    <div className="flex h-full items-center justify-center" style={{ color: mutedText }}>
+                        <div className="flex flex-col items-center gap-2">
+                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-indigo-500" />
+                            <p className="text-xs">Loading document...</p>
+                        </div>
+                    </div>
+                ) : error ? (
+                    <div className="flex h-full items-center justify-center" style={{ color: mutedText }}>
+                        <div className="flex flex-col items-center gap-2 text-center px-4">
+                            <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <p className="text-xs">{error}</p>
+                        </div>
+                    </div>
+                ) : docs.length > 0 ? (
+                    <DocViewer
+                        documents={docs}
+                        pluginRenderers={DocViewerRenderers}
+                        theme={theme}
+                        config={config}
+                        style={{
+                            width: "100%",
+                            height: "100%",
+                            background: bgColor,
+                        }}
+                        className="document-viewer"
+                    />
+                ) : null}
             </div>
 
             {/* Custom styles for the default controls */}

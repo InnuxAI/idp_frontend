@@ -3,6 +3,14 @@ import { GraphData, DocumentDetails, DocumentMetadata, SummaryResponse, Reconcil
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+// Helper to get auth headers
+const getAuthHeaders = () => {
+    const token = typeof window !== 'undefined'
+        ? (sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token'))
+        : null;
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 export interface UploadResponse {
     success: boolean;
     doc_id?: string;
@@ -24,37 +32,51 @@ export interface UploadProgress {
 
 export const zeteApi = {
     getGraphData: async (): Promise<GraphData> => {
-        const response = await axios.get(`${API_BASE_URL}/api/zete/graph`);
+        const response = await axios.get(`${API_BASE_URL}/api/zete/graph`, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     },
 
     getDocuments: async (): Promise<DocumentMetadata[]> => {
-        const response = await axios.get(`${API_BASE_URL}/api/zete/documents`);
+        const response = await axios.get(`${API_BASE_URL}/api/zete/documents`, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     },
 
     getDocument: async (docId: string): Promise<DocumentDetails> => {
-        const response = await axios.get(`${API_BASE_URL}/api/zete/documents/${docId}`);
+        const response = await axios.get(`${API_BASE_URL}/api/zete/documents/${docId}`, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     },
 
     summarizeDocument: async (docId: string): Promise<SummaryResponse> => {
-        const response = await axios.post(`${API_BASE_URL}/api/zete/summarize/${docId}`);
+        const response = await axios.post(`${API_BASE_URL}/api/zete/summarize/${docId}`, {}, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     },
 
     reconcileDocument: async (docId: string): Promise<ReconciliationResult> => {
-        const response = await axios.post(`${API_BASE_URL}/api/zete/reconcile/${docId}`);
+        const response = await axios.post(`${API_BASE_URL}/api/zete/reconcile/${docId}`, {}, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     },
 
     query: async (question: string): Promise<QueryResponse> => {
-        const response = await axios.post(`${API_BASE_URL}/api/zete/query`, { question });
+        const response = await axios.post(`${API_BASE_URL}/api/zete/query`, { question }, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     },
 
     ingestDocument: async (fileDetails: { file_path: string }) => {
-        const response = await axios.post(`${API_BASE_URL}/api/zete/documents/ingest`, fileDetails);
+        const response = await axios.post(`${API_BASE_URL}/api/zete/documents/ingest`, fileDetails, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     },
 
@@ -81,6 +103,7 @@ export const zeteApi = {
             {
                 headers: {
                     'Content-Type': 'multipart/form-data',
+                    ...getAuthHeaders()
                 },
                 onUploadProgress: (progressEvent) => {
                     if (progressEvent.total && onProgress) {
@@ -94,12 +117,16 @@ export const zeteApi = {
     },
 
     deleteDocument: async (docId: string): Promise<{ success: boolean; doc_id: string; message: string; file_deleted: boolean }> => {
-        const response = await axios.delete(`${API_BASE_URL}/api/zete/documents/${docId}`);
+        const response = await axios.delete(`${API_BASE_URL}/api/zete/documents/${docId}`, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     },
 
     getNodeMetadata: async (docId: string): Promise<Record<string, any>> => {
-        const response = await axios.get(`${API_BASE_URL}/api/zete/graph/node/${docId}/metadata`);
+        const response = await axios.get(`${API_BASE_URL}/api/zete/graph/node/${docId}/metadata`, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     }
 };

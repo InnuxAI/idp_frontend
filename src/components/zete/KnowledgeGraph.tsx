@@ -4,7 +4,6 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { GraphData, GraphLink, GraphNode } from "../../types/zete-types";
-import { useResizeObserver } from "../../hooks/useResizeObserver";
 import {
     IconFocusCentered,
     IconZoomIn,
@@ -160,7 +159,7 @@ interface KnowledgeGraphProps {
 export function KnowledgeGraph({ data, onNodeClick, onNodeRightClick }: KnowledgeGraphProps) {
     const fgRef = useRef<any>(undefined);
     const containerRef = useRef<HTMLDivElement>(null);
-    const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+    const [dimensions, setDimensions] = useState({ width: 100, height: 100 });
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -224,16 +223,31 @@ export function KnowledgeGraph({ data, onNodeClick, onNodeRightClick }: Knowledg
         return clonedData;
     }, [data]);
 
-    // Update dimensions
-    const observedDimensions = useResizeObserver(containerRef as any);
+    // Update dimensions - depend on mounted to ensure ref is attached
     useEffect(() => {
-        if (observedDimensions) {
-            setDimensions({
-                width: observedDimensions.width,
-                height: observedDimensions.height
+        if (!mounted || !containerRef.current) return;
+
+        const observeTarget = containerRef.current;
+
+        const resizeObserver = new ResizeObserver((entries) => {
+            entries.forEach((entry) => {
+                setDimensions({
+                    width: entry.contentRect.width,
+                    height: entry.contentRect.height
+                });
             });
-        }
-    }, [observedDimensions]);
+        });
+
+        resizeObserver.observe(observeTarget);
+
+        // Get initial dimensions
+        const rect = observeTarget.getBoundingClientRect();
+        setDimensions({ width: rect.width, height: rect.height });
+
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, [mounted]);
 
     // Ripple animation loop
     useEffect(() => {
@@ -660,6 +674,22 @@ export function KnowledgeGraph({ data, onNodeClick, onNodeRightClick }: Knowledg
                 nodeLabel="label"
                 nodeColor={getNodeColor}
                 nodeRelSize={6}
+
+                // D3 Force Configuration - bring nodes closer together
+                d3AlphaDecay={0.02}
+                d3VelocityDecay={0.3}
+                d3Force={(engine: any) => {
+                    // Reduce charge repulsion to bring nodes closer
+                    engine.force('charge')?.strength(-100);
+                    // Shorter link distance
+                    engine.force('link')?.distance(30);
+                    // Add center force to keep graph centered
+                    engine.force('center')?.strength(0.1);
+                }}
+                onEngineStop={() => {
+                    // Auto-fit to screen after simulation settles
+                    fgRef.current?.zoomToFit(400, 40);
+                }}
 
                 // Highlighting Props
                 linkColor={getLinkColor}
