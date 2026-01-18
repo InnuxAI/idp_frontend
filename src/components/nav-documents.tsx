@@ -89,19 +89,6 @@ export function NavDocuments({
               )}
             </SidebarMenuButton>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild disabled={item.disabled}>
-                <SidebarMenuAction
-                  showOnHover
-                  className="data-[state=open]:bg-accent rounded-sm"
-                  style={{
-                    visibility: item.disabled ? 'hidden' : 'visible',
-                    pointerEvents: item.disabled ? 'none' : 'auto'
-                  }}
-                >
-                  <IconDots />
-                  <span className="sr-only">More</span>
-                </SidebarMenuAction>
-              </DropdownMenuTrigger>
               {!item.disabled && (
                 <DropdownMenuContent
                   className="w-24 rounded-lg"
@@ -126,18 +113,6 @@ export function NavDocuments({
             </DropdownMenu>
           </SidebarMenuItem>
         ))}
-        <SidebarMenuItem>
-          <SidebarMenuButton className="text-sidebar-foreground/70" asChild>
-            <motion.button
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: (startIndex + items.length) * 0.05 }}
-            >
-              <IconDots className="text-sidebar-foreground/70" />
-              <span>More</span>
-            </motion.button>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
   )
