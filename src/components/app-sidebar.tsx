@@ -9,6 +9,7 @@ import {
   IconDatabase,
   IconFileAi,
   IconFileDescription,
+  IconFileInvoice,
   IconFileWord,
   IconFolder,
   IconHelp,
@@ -69,6 +70,13 @@ const navMainItems = [
     icon: IconChartBar,
     tooltip: "Two Way matching",
     requiredPermission: PAGE_PERMISSIONS.ANALYTICS,
+  },
+  {
+    title: "Invoice Approval",
+    url: "/hitl",
+    icon: IconFileInvoice,
+    tooltip: "AI-powered invoice approval",
+    requiredPermission: PAGE_PERMISSIONS.HITL,
   }
 ]
 
@@ -212,7 +220,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
                   />
                   <div className="flex items-baseline gap-2 leading-none">
-                    <span className="text-xl font-bold tracking-tight ">Innux AI</span>
+                    <span className="text-lg font-bold tracking-tight ">Innux AI</span>
                     <span className="text-xs italic text-muted-foreground tracking-tight">
                       your thinking partner
                     </span>

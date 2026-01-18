@@ -17,6 +17,7 @@ export const PAGE_PERMISSIONS = {
     SETTINGS: "page:settings",
     ADMIN: "page:admin",
     ROLE_MANAGEMENT: "page:role_management",
+    HITL: "page:hitl",
 } as const
 
 export type PagePermission = (typeof PAGE_PERMISSIONS)[keyof typeof PAGE_PERMISSIONS]
@@ -38,6 +39,7 @@ export const ROUTE_PERMISSION_MAP: Record<string, PagePermission> = {
     "/settings": PAGE_PERMISSIONS.SETTINGS,
     "/admin": PAGE_PERMISSIONS.ADMIN,
     "/admin/roles": PAGE_PERMISSIONS.ROLE_MANAGEMENT,
+    "/hitl": PAGE_PERMISSIONS.HITL,
 }
 
 /**
@@ -95,6 +97,7 @@ export const AVAILABLE_PAGES: PageInfo[] = [
     { id: PAGE_PERMISSIONS.KNOWLEDGE_GRAPH, name: "Knowledge Graph", description: "Visualize data relationships", route: "/zete" },
     { id: PAGE_PERMISSIONS.FIELD_EXTRACTION, name: "Field Extraction", description: "Extract data from documents", route: "/field-extraction" },
     { id: PAGE_PERMISSIONS.ANALYTICS, name: "Analytics", description: "Two-way matching and analytics", route: "/2_way_match" },
+    { id: PAGE_PERMISSIONS.HITL, name: "Invoice Approval", description: "AI-powered invoice approval with human oversight", route: "/hitl" },
     { id: PAGE_PERMISSIONS.DATA_LIBRARY, name: "Data Library", description: "Manage uploaded documents", route: "/data-library" },
     { id: PAGE_PERMISSIONS.SCHEMA_LIBRARY, name: "Schema Library", description: "Manage extraction schemas", route: "/extraction-schemas" },
     { id: PAGE_PERMISSIONS.SETTINGS, name: "Settings", description: "User settings and preferences", route: "/settings" },
