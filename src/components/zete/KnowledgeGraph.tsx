@@ -179,7 +179,7 @@ export function KnowledgeGraph({ data, onNodeClick, onNodeRightClick }: Knowledg
 
     // Toolbar state
     const [isToolbarExpanded, setIsToolbarExpanded] = useState(true);
-    const [showEdgeLabels, setShowEdgeLabels] = useState(false);
+    const [showEdgeLabels, setShowEdgeLabels] = useState(true);
 
     // Spinning gradient rotation state
     const [spinRotation, setSpinRotation] = useState(0);
@@ -302,7 +302,7 @@ export function KnowledgeGraph({ data, onNodeClick, onNodeRightClick }: Knowledg
             case 3: return "#059669"; // Invoice
             case 4: return "#D97706"; // Addendum
             case 5: return "#DC2626"; // NDA
-            case 6: return "#4338CA"; // Organization
+            case 6: return "#49ca38ff"; // Organization
             case 7: return "#DB2777"; // VisitingCard
             case 8: return "#0891B2"; // Brochure
             default: return "#6B7280";
@@ -680,9 +680,9 @@ export function KnowledgeGraph({ data, onNodeClick, onNodeRightClick }: Knowledg
                 d3VelocityDecay={0.3}
                 d3Force={(engine: any) => {
                     // Reduce charge repulsion to bring nodes closer
-                    engine.force('charge')?.strength(-100);
+                    engine.force('charge')?.strength(100);
                     // Shorter link distance
-                    engine.force('link')?.distance(30);
+                    engine.force('link')?.distance(50);
                     // Add center force to keep graph centered
                     engine.force('center')?.strength(0.1);
                 }}
@@ -734,14 +734,11 @@ export function KnowledgeGraph({ data, onNodeClick, onNodeRightClick }: Knowledg
                 <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#059669]"></div> Invoice</div>
                 <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#D97706]"></div> Addendum</div>
                 <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#DC2626]"></div> NDA</div>
-                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#4338CA]"></div> Organization</div>
+                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#49ca38ff]"></div> Organization</div>
                 <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#DB2777]"></div> Visiting Card</div>
                 <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#0891B2]"></div> Brochure</div>
                 <div className="mt-2 text-gray-400 dark:text-zinc-500 text-[10px] leading-tight">
                     Scroll to zoom | Hold to drag
-                </div>
-                <div className="mt-1 pt-2 border-t border-gray-200/60 dark:border-zinc-800/60 text-gray-400 dark:text-zinc-500">
-                    &copy; 2026 InnuxAI. All rights reserved.
                 </div>
             </div>
 

@@ -28,6 +28,7 @@ const UniversalDocumentViewer = dynamic(
 
 interface DocumentPanelProps {
     document: DocumentDetails | null;
+    onDelete?: () => void;
 }
 
 interface ParsedContent {
@@ -178,10 +179,11 @@ const DocumentContentRenderer = memo(function DocumentContentRenderer({
     );
 });
 
-export function DocumentPanel({ document }: DocumentPanelProps) {
+export function DocumentPanel({ document, onDelete }: DocumentPanelProps) {
     const [summaries, setSummaries] = useState<any | null>(null);
     const [reconciliation, setReconciliation] = useState<any | null>(null);
     const [loading, setLoading] = useState<string | null>(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     // Reset state when document changes
     useEffect(() => {
@@ -195,11 +197,8 @@ export function DocumentPanel({ document }: DocumentPanelProps) {
         if (!document) return;
         setLoading("summarize");
         try {
-            // Placeholder: need to update API client to support document actions if not generic
-            // For now assuming we can call something similar
-            // const res = await zeteApi.summarizeDocument(document.id);
-            // setSummaries(res);
-            console.log("Summarize clicked");
+            const res = await zeteApi.summarizeDocument(document.id);
+            setSummaries(res);
         } catch (e) {
             console.error(e);
         } finally {
@@ -221,6 +220,23 @@ export function DocumentPanel({ document }: DocumentPanelProps) {
         }
     };
 
+    const handleDelete = async () => {
+        if (!document) return;
+        setLoading("delete");
+        try {
+            await zeteApi.deleteDocument(document.id);
+            setShowDeleteConfirm(false);
+            onDelete?.();
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(null);
+        }
+    };
+
+    // Check if this is an entity node (like Organization)
+    const isEntity = (document?.metadata as any)?.isEntity;
+
     if (!document) {
         return (
             <div className="h-full w-full flex flex-col items-center justify-center text-gray-400 dark:text-zinc-500 p-8 text-center bg-gray-50/50 dark:bg-zinc-900/30">
@@ -231,6 +247,56 @@ export function DocumentPanel({ document }: DocumentPanelProps) {
                 </div>
                 <p className="font-serif italic text-lg text-gray-500 dark:text-zinc-500">Select a document to view details</p>
             </div>
+        );
+    }
+
+    // Entity display (Organization, etc.)
+    if (isEntity) {
+        return (
+            <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1.0] }}
+                key={document.id}
+                className="flex flex-col h-full"
+            >
+                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gradient-to-b from-green-50 to-white dark:from-green-950/20 dark:to-zinc-900">
+                    <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 20 }}
+                        className="w-20 h-20 mb-6 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center shadow-lg"
+                    >
+                        <svg className="w-10 h-10 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                    </motion.div>
+                    <motion.span
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="text-xs font-bold tracking-wider text-green-600 dark:text-green-400 uppercase mb-2"
+                    >
+                        {(document.metadata as any)?.entityType || 'Organization'}
+                    </motion.span>
+                    <motion.h1
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="text-2xl font-serif text-gray-900 dark:text-zinc-100"
+                    >
+                        {document.metadata.title || document.id}
+                    </motion.h1>
+                    <motion.p
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="mt-4 text-sm text-gray-500 dark:text-zinc-400"
+                    >
+                        Entity node in the knowledge graph
+                    </motion.p>
+                </div>
+            </motion.div>
         );
     }
 
@@ -332,7 +398,7 @@ export function DocumentPanel({ document }: DocumentPanelProps) {
                         icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>}
                         variant="primary"
                     />
-                    {document.metadata.type === 'Invoice' && (
+                    {/* {document.metadata.type === 'Invoice' && (
                         <ActionButton
                             label="Reconcile"
                             onClick={handleReconcile}
@@ -340,11 +406,18 @@ export function DocumentPanel({ document }: DocumentPanelProps) {
                             icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                             variant="secondary"
                         />
-                    )}
+                    )} */}
+                    <ActionButton
+                        label={showDeleteConfirm ? "Confirm Delete" : "Delete"}
+                        onClick={() => showDeleteConfirm ? handleDelete() : setShowDeleteConfirm(true)}
+                        loading={loading === 'delete'}
+                        icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>}
+                        variant="danger"
+                    />
                 </motion.div>
 
                 <AnimatePresence mode="popLayout">
-                    {reconciliation && (
+                    {/* {reconciliation && (
                         <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
@@ -367,7 +440,7 @@ export function DocumentPanel({ document }: DocumentPanelProps) {
                                 </div>
                             </div>
                         </motion.div>
-                    )}
+                    )} */}
 
                     {summaries && (
                         <motion.div
@@ -430,13 +503,14 @@ function isBinaryFile(content: string): boolean {
     return binaryPatterns.some(pattern => pattern.test(content.trim()));
 }
 
-function ActionButton({ label, onClick, loading, icon, variant = 'outline' }: { label: string, onClick: () => void, loading: boolean, icon: React.ReactNode, variant?: 'primary' | 'secondary' | 'outline' }) {
+function ActionButton({ label, onClick, loading, icon, variant = 'outline' }: { label: string, onClick: () => void, loading: boolean, icon: React.ReactNode, variant?: 'primary' | 'secondary' | 'outline' | 'danger' }) {
     const baseClasses = "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium shadow-sm disabled:opacity-50 transition-colors";
 
     const variantClasses = {
         primary: "bg-gray-900 text-white border border-transparent hover:bg-gray-800 dark:bg-indigo-600 dark:hover:bg-indigo-500",
         secondary: "bg-blue-600 text-white border border-blue-100 hover:bg-blue-500 dark:bg-blue-700 dark:border-blue-800 dark:hover:bg-blue-600",
-        outline: "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-700"
+        outline: "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-700",
+        danger: "bg-red-600 text-white border border-red-700 hover:bg-red-700 dark:bg-red-700 dark:border-red-800 dark:hover:bg-red-600"
     }[variant];
 
     return (

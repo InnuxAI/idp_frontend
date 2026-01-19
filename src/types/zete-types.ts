@@ -17,6 +17,7 @@ export interface GraphNode {
     id: string;
     group: number;
     label: string;
+    node_type?: 'document' | 'entity';
     x?: number;
     y?: number;
     vx?: number;

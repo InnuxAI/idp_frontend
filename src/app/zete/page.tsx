@@ -76,6 +76,23 @@ function ZetePageContent() {
     }, []);
 
     const handleNodeClick = async (node: GraphNode) => {
+        // For entity nodes (like Organization), show a simple view
+        if (node.node_type === 'entity') {
+            setSelectedDocument({
+                id: node.id,
+                content: '',
+                metadata: {
+                    id: node.id,
+                    type: 'Unknown',
+                    title: node.label,
+                    isEntity: true,
+                    entityType: 'Organization'
+                }
+            } as any);
+            setShowDocument(true);
+            return;
+        }
+
         try {
             const doc = await zeteApi.getDocument(node.id);
             setSelectedDocument(doc);
@@ -293,7 +310,13 @@ function ZetePageContent() {
                                 style={{ width: showChat ? 350 : 420 }}
                                 className="shrink-0 rounded-xl border border-gray-200 bg-white dark:bg-zinc-900 dark:border-zinc-800 overflow-hidden shadow-sm flex flex-col"
                             >
-                                <DocumentPanel document={selectedDocument} />
+                                <DocumentPanel
+                                    document={selectedDocument}
+                                    onDelete={() => {
+                                        setSelectedDocument(null);
+                                        fetchGraph();
+                                    }}
+                                />
                             </motion.div>
                         )}
                     </AnimatePresence>
