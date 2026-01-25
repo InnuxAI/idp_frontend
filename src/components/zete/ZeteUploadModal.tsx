@@ -15,7 +15,9 @@ import {
     IconAlertCircle,
     IconLoader2,
 } from "@tabler/icons-react";
-import { zeteApi, UploadProgress } from "@/lib/zete-api";
+import { zeteApi, UploadResponse } from "@/lib/zete-api";
+import { ProcessingStep, STEP_LABELS } from "@/types/zete-types";
+import { useUploadContext } from "@/contexts/upload-context";
 import { cn } from "@/lib/utils";
 
 // ============================================================================
@@ -27,10 +29,13 @@ interface FileWithContext {
     file: File;
     context: string;
     preview?: string;
-    status: "pending" | "uploading" | "success" | "error";
+    status: "pending" | "uploading" | "processing" | "success" | "error";
     progress: number;
     error?: string;
     docId?: string;
+    taskId?: string;
+    currentStep?: ProcessingStep;
+    stepMessage?: string;
 }
 
 interface ZeteUploadModalProps {
@@ -119,6 +124,7 @@ const FileItem: React.FC<FileItemProps> = ({
     const statusColors = {
         pending: "border-zinc-200 dark:border-zinc-700",
         uploading: "border-orange-400 dark:border-orange-500",
+        processing: "border-blue-400 dark:border-blue-500",
         success: "border-emerald-400 dark:border-emerald-500",
         error: "border-red-400 dark:border-red-500",
     };
@@ -164,14 +170,24 @@ const FileItem: React.FC<FileItemProps> = ({
                 </div>
 
                 {/* Progress Bar */}
-                {item.status === "uploading" && (
-                    <div className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
-                        <motion.div
-                            className="h-full bg-orange-500"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${item.progress}%` }}
-                            transition={{ ease: "easeOut" }}
-                        />
+                {(item.status === "uploading" || item.status === "processing") && (
+                    <div className="w-full">
+                        <div className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
+                            <motion.div
+                                className={cn(
+                                    "h-full",
+                                    item.status === "uploading" ? "bg-orange-500" : "bg-blue-500"
+                                )}
+                                initial={{ width: 0 }}
+                                animate={{ width: `${item.progress}%` }}
+                                transition={{ ease: "easeOut" }}
+                            />
+                        </div>
+                        {item.status === "processing" && item.stepMessage && (
+                            <p className="text-xs text-blue-500 dark:text-blue-400 mt-1 truncate">
+                                {item.stepMessage}
+                            </p>
+                        )}
                     </div>
                 )}
 
@@ -179,7 +195,7 @@ const FileItem: React.FC<FileItemProps> = ({
                 {item.status === "success" && (
                     <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
                         <IconCheck size={14} />
-                        <span>Uploaded</span>
+                        <span>Added to Knowledge Graph</span>
                     </div>
                 )}
                 {item.status === "error" && (
@@ -339,11 +355,11 @@ export const ZeteUploadModal: React.FC<ZeteUploadModalProps> = ({
 }) => {
     const [files, setFiles] = useState<FileWithContext[]>([]);
     const [isUploading, setIsUploading] = useState(false);
+    const { addUpload, startSSE } = useUploadContext();
 
-    // Clear files when modal closes
+    // Clear local files when modal closes (context persists active uploads)
     useEffect(() => {
         if (!isOpen) {
-            // Small delay to allow exit animation
             const timer = setTimeout(() => {
                 setFiles([]);
                 setIsUploading(false);
@@ -384,7 +400,7 @@ export const ZeteUploadModal: React.FC<ZeteUploadModalProps> = ({
         });
     }, []);
 
-    // Handle upload
+    // Handle upload - async with polling
     const handleUpload = async () => {
         const pendingFiles = files.filter((f) => f.status === "pending");
         if (pendingFiles.length === 0) {
@@ -394,10 +410,8 @@ export const ZeteUploadModal: React.FC<ZeteUploadModalProps> = ({
 
         setIsUploading(true);
 
-        let successCount = 0;
-        let errorCount = 0;
-
-        for (const fileItem of pendingFiles) {
+        // Process all files in parallel (non-blocking)
+        const uploadPromises = pendingFiles.map(async (fileItem) => {
             // Update status to uploading
             setFiles((prev) =>
                 prev.map((f) =>
@@ -406,6 +420,7 @@ export const ZeteUploadModal: React.FC<ZeteUploadModalProps> = ({
             );
 
             try {
+                // Upload file and get task_id
                 const response = await zeteApi.uploadDocument(
                     fileItem.file,
                     fileItem.context || undefined,
@@ -418,28 +433,60 @@ export const ZeteUploadModal: React.FC<ZeteUploadModalProps> = ({
                     }
                 );
 
-                if (response.success) {
-                    setFiles((prev) =>
-                        prev.map((f) =>
-                            f.id === fileItem.id
-                                ? { ...f, status: "success", progress: 100, docId: response.doc_id }
-                                : f
-                        )
-                    );
-                    successCount++;
-                } else {
+                // Check if we got a task_id (async mode) or immediate success (sync mode)
+                if ('task_id' in response) {
+                    const taskId = response.task_id;
+
+                    // Update to processing status
                     setFiles((prev) =>
                         prev.map((f) =>
                             f.id === fileItem.id
                                 ? {
                                     ...f,
-                                    status: "error",
-                                    error: response.errors?.join(", ") || "Upload failed",
+                                    status: "processing",
+                                    taskId,
+                                    progress: 5,
+                                    stepMessage: "Queued for processing..."
                                 }
                                 : f
                         )
                     );
-                    errorCount++;
+
+                    // Add to context and start SSE (context will handle updates)
+                    addUpload({
+                        id: fileItem.id,
+                        fileName: fileItem.file.name,
+                        file: fileItem.file,
+                        status: "processing",
+                        progress: 5,
+                        taskId,
+                        stepMessage: "Queued for processing...",
+                    });
+                    startSSE(fileItem.id, taskId);
+
+                    return { success: true, fileId: fileItem.id, async: true };
+                } else {
+                    // Sync mode response (legacy)
+                    const syncResponse = response as UploadResponse;
+                    if (syncResponse.success) {
+                        setFiles((prev) =>
+                            prev.map((f) =>
+                                f.id === fileItem.id
+                                    ? { ...f, status: "success", progress: 100, docId: syncResponse.doc_id }
+                                    : f
+                            )
+                        );
+                        return { success: true, fileId: fileItem.id };
+                    } else {
+                        setFiles((prev) =>
+                            prev.map((f) =>
+                                f.id === fileItem.id
+                                    ? { ...f, status: "error", error: syncResponse.errors?.join(", ") || "Upload failed" }
+                                    : f
+                            )
+                        );
+                        return { success: false, fileId: fileItem.id };
+                    }
                 }
             } catch (err: any) {
                 console.error("Upload error:", err);
@@ -454,30 +501,34 @@ export const ZeteUploadModal: React.FC<ZeteUploadModalProps> = ({
                             : f
                     )
                 );
-                errorCount++;
+                return { success: false, fileId: fileItem.id };
             }
-        }
+        });
+
+        // Wait for all uploads to be dispatched
+        const results = await Promise.all(uploadPromises);
+
+        const asyncCount = results.filter((r: any) => r.async).length;
+        const syncSuccessCount = results.filter((r: any) => r.success && !r.async).length;
+        const errorCount = results.filter((r: any) => !r.success).length;
 
         setIsUploading(false);
 
-        // Show summary toast
-        if (successCount > 0 && errorCount === 0) {
-            toast.success(`Successfully uploaded ${successCount} file${successCount > 1 ? "s" : ""}`);
+        // Show appropriate toast
+        if (asyncCount > 0) {
+            toast.info(`${asyncCount} file${asyncCount > 1 ? "s" : ""} processing in background`);
+        }
+        if (syncSuccessCount > 0) {
+            toast.success(`${syncSuccessCount} file${syncSuccessCount > 1 ? "s" : ""} processed`);
             onUploadComplete?.();
-        } else if (successCount > 0 && errorCount > 0) {
-            toast.warning(`Uploaded ${successCount} file${successCount > 1 ? "s" : ""}, ${errorCount} failed`);
-            onUploadComplete?.();
-        } else {
-            toast.error(`Failed to upload ${errorCount} file${errorCount > 1 ? "s" : ""}`);
+        }
+        if (errorCount > 0) {
+            toast.error(`${errorCount} file${errorCount > 1 ? "s" : ""} failed`);
         }
     };
 
-    // Handle close
+    // Handle close - allow closing even if uploading (background processing)
     const handleClose = () => {
-        if (isUploading) {
-            toast.warning("Please wait for uploads to complete");
-            return;
-        }
         onClose();
     };
 

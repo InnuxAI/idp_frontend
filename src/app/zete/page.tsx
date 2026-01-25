@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { KnowledgeGraph } from "@/components/zete/KnowledgeGraph";
+import { KnowledgeGraph, KnowledgeGraphHandle } from "@/components/zete/KnowledgeGraph";
 import { DocumentPanel } from "@/components/zete/DocumentPanel";
 import { ChatPanel } from "@/components/zete/ChatPanel";
 import { ZeteUploadModal } from "@/components/zete/ZeteUploadModal";
+import { UploadNotifications } from "@/components/zete/UploadNotifications";
 import { zeteApi } from "@/lib/zete-api";
 import { GraphData, GraphNode, DocumentDetails } from "@/types/zete-types";
 import { JsonTable } from "@/components/ui/json-table";
@@ -20,7 +21,7 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { IconMessageChatbot, IconFileDescription, IconUpload } from "@tabler/icons-react";
+import { IconMessageChatbot, IconFileDescription, IconUpload, IconVectorSpline } from "@tabler/icons-react";
 import { PageGuard } from "@/components/auth/PageGuard";
 
 function ZetePageContent() {
@@ -31,6 +32,7 @@ function ZetePageContent() {
 
     // Panel visibility state
     const [showChat, setShowChat] = useState(false);
+    const [showGraph, setShowGraph] = useState(true);
     const [showDocument, setShowDocument] = useState(true);
 
     // Upload modal state
@@ -38,6 +40,9 @@ function ZetePageContent() {
 
     // Metadata Tooltip State
     const [tooltipData, setTooltipData] = useState<{ x: number, y: number, content: any, isLoading: boolean } | null>(null);
+
+    // Ref for KnowledgeGraph to programmatically select nodes
+    const graphRef = useRef<KnowledgeGraphHandle>(null);
 
     // Fetch graph data function (extracted for reuse)
     const fetchGraph = useCallback(async () => {
@@ -98,6 +103,23 @@ function ZetePageContent() {
             setSelectedDocument(doc);
             // Auto-show document panel when a node is clicked
             setShowDocument(true);
+        } catch (error) {
+            console.error("Failed to fetch document details:", error);
+        }
+    };
+
+    // Handle source badge click from chat - opens document in viewer
+    const handleSourceClick = async (docId: string) => {
+        try {
+            const doc = await zeteApi.getDocument(docId);
+            setSelectedDocument(doc);
+            // Auto-show document panel when a source is clicked
+            setShowDocument(true);
+
+            // Also select the node in the graph if graph is visible
+            if (showGraph) {
+                graphRef.current?.selectNodeById(docId);
+            }
         } catch (error) {
             console.error("Failed to fetch document details:", error);
         }
@@ -220,6 +242,16 @@ function ZetePageContent() {
                                 <span className="hidden sm:inline">Chat</span>
                             </button>
                             <button
+                                onClick={() => setShowGraph(!showGraph)}
+                                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${showGraph
+                                    ? 'bg-white shadow text-gray-900 dark:bg-zinc-700 dark:text-zinc-100'
+                                    : 'text-gray-500 hover:text-gray-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+                                    }`}
+                            >
+                                <IconVectorSpline size={14} />
+                                <span className="hidden sm:inline">Graph</span>
+                            </button>
+                            <button
                                 onClick={() => setShowDocument(!showDocument)}
                                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${showDocument
                                     ? 'bg-white shadow text-gray-900 dark:bg-zinc-700 dark:text-zinc-100'
@@ -239,7 +271,7 @@ function ZetePageContent() {
                     layout
                     transition={springTransition}
                 >
-                    {/* Left: Chat & Search */}
+                    {/* Left: Chat & Search - main panel, takes most space */}
                     <AnimatePresence mode="popLayout">
                         {showChat && (
                             <motion.div
@@ -249,53 +281,62 @@ function ZetePageContent() {
                                 initial="hidden"
                                 animate="visible"
                                 exit="exit"
-                                style={{ width: showDocument ? 320 : 400 }}
-                                className="shrink-0 rounded-xl border border-gray-200 bg-white dark:bg-zinc-900 dark:border-zinc-800 overflow-hidden shadow-sm flex flex-col"
+                                className="flex-1 min-w-[320px] rounded-xl border border-gray-200 bg-white dark:bg-zinc-900 dark:border-zinc-800 overflow-hidden shadow-sm flex flex-col"
                             >
-                                <ChatPanel />
+                                <ChatPanel onSourceClick={handleSourceClick} />
                             </motion.div>
                         )}
                     </AnimatePresence>
 
-                    {/* Middle: Graph Visualization (Main) - always visible */}
-                    <motion.div
-                        layout
-                        transition={springTransition}
-                        className="flex-1 min-w-[400px] rounded-xl border border-gray-200 bg-slate-50 dark:bg-zinc-900/50 dark:border-zinc-800 overflow-hidden shadow-sm relative"
-                    >
-                        {isLoading ? (
-                            <div className="flex h-full items-center justify-center text-gray-400 dark:text-zinc-500">
-                                <div className="flex flex-col items-center gap-2">
-                                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-indigo-500 dark:border-zinc-700 dark:border-t-indigo-400" />
-                                    <p className="text-sm">Loading graph...</p>
-                                </div>
-                            </div>
-                        ) : error ? (
-                            <div className="flex h-full items-center justify-center text-gray-400 dark:text-zinc-500">
-                                <div className="flex flex-col items-center gap-4 max-w-sm text-center p-6">
-                                    <div className="h-12 w-12 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500 dark:text-red-400">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                    {/* Middle: Graph Visualization - fixed width when chat is open, expands otherwise */}
+                    <AnimatePresence mode="popLayout">
+                        {showGraph && (
+                            <motion.div
+                                key="graph-panel"
+                                layout
+                                variants={panelVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                                transition={springTransition}
+                                className={`rounded-xl border border-gray-200 bg-slate-50 dark:bg-zinc-900/50 dark:border-zinc-800 overflow-hidden shadow-sm relative ${showChat ? 'w-80 shrink-0' : 'flex-1 min-w-[400px]'}`}
+                            >
+                                {isLoading ? (
+                                    <div className="flex h-full items-center justify-center text-gray-400 dark:text-zinc-500">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-indigo-500 dark:border-zinc-700 dark:border-t-indigo-400" />
+                                            <p className="text-sm">Loading graph...</p>
+                                        </div>
                                     </div>
-                                    <div className="space-y-1">
-                                        <h3 className="font-medium text-gray-900 dark:text-zinc-100">Connection Error</h3>
-                                        <p className="text-sm text-gray-500 dark:text-zinc-400">{error}</p>
+                                ) : error ? (
+                                    <div className="flex h-full items-center justify-center text-gray-400 dark:text-zinc-500">
+                                        <div className="flex flex-col items-center gap-4 max-w-sm text-center p-6">
+                                            <div className="h-12 w-12 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500 dark:text-red-400">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <h3 className="font-medium text-gray-900 dark:text-zinc-100">Connection Error</h3>
+                                                <p className="text-sm text-gray-500 dark:text-zinc-400">{error}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => window.location.reload()}
+                                                className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-white border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                                            >
+                                                Retry Connection
+                                            </button>
+                                        </div>
                                     </div>
-                                    <button
-                                        onClick={() => window.location.reload()}
-                                        className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-white border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-700"
-                                    >
-                                        Retry Connection
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <KnowledgeGraph
-                                data={graphData}
-                                onNodeClick={handleNodeClick}
-                                onNodeRightClick={handleNodeRightClick}
-                            />
+                                ) : (
+                                    <KnowledgeGraph
+                                        ref={graphRef}
+                                        data={graphData}
+                                        onNodeClick={handleNodeClick}
+                                        onNodeRightClick={handleNodeRightClick}
+                                    />
+                                )}
+                            </motion.div>
                         )}
-                    </motion.div>
+                    </AnimatePresence>
 
                     {/* Right: Document Details */}
                     <AnimatePresence mode="popLayout">
@@ -352,6 +393,11 @@ function ZetePageContent() {
                     isOpen={showUploadModal}
                     onClose={() => setShowUploadModal(false)}
                     onUploadComplete={handleUploadComplete}
+                />
+
+                {/* Upload Notifications Dropdown */}
+                <UploadNotifications
+                    onAllComplete={handleUploadComplete}
                 />
             </SidebarInset>
         </SidebarProvider>

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { GraphData, DocumentDetails, DocumentMetadata, SummaryResponse, ReconciliationResult, QueryResponse } from '@/types/zete-types';
+import { GraphData, DocumentDetails, DocumentMetadata, SummaryResponse, ReconciliationResult, QueryResponse, TaskStatusResponse, TaskCreateResponse } from '@/types/zete-types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -66,8 +66,11 @@ export const zeteApi = {
         return response.data;
     },
 
-    query: async (question: string): Promise<QueryResponse> => {
-        const response = await axios.post(`${API_BASE_URL}/api/zete/query`, { question }, {
+    query: async (question: string, documentTypes?: string[]): Promise<QueryResponse> => {
+        const response = await axios.post(`${API_BASE_URL}/api/zete/query`, {
+            question,
+            document_types: documentTypes?.length ? documentTypes : undefined
+        }, {
             headers: getAuthHeaders()
         });
         return response.data;
@@ -82,19 +85,26 @@ export const zeteApi = {
 
     /**
      * Upload a document with optional user context.
+     * Returns a TaskCreateResponse for async processing (default) or UploadResponse for sync.
+     * 
      * @param file - The file to upload
      * @param context - Optional user context (e.g., "Met person X at venue Y on date Z")
-     * @param onProgress - Optional progress callback
+     * @param onProgress - Optional progress callback for upload progress
+     * @param sync - If true, wait for processing to complete (legacy behavior)
      */
     uploadDocument: async (
         file: File,
         context?: string,
-        onProgress?: (progress: number) => void
-    ): Promise<UploadResponse> => {
+        onProgress?: (progress: number) => void,
+        sync: boolean = false
+    ): Promise<TaskCreateResponse | UploadResponse> => {
         const formData = new FormData();
         formData.append('file', file);
         if (context && context.trim()) {
             formData.append('context', context);
+        }
+        if (sync) {
+            formData.append('sync', 'true');
         }
 
         const response = await axios.post(
@@ -113,6 +123,77 @@ export const zeteApi = {
                 },
             }
         );
+        return response.data;
+    },
+
+    /**
+     * Get the current status of an async document processing task.
+     * Poll this every 2-3 seconds to get real-time updates.
+     */
+    getTaskStatus: async (taskId: string): Promise<TaskStatusResponse> => {
+        const response = await axios.get(`${API_BASE_URL}/api/zete/tasks/${taskId}/status`, {
+            headers: getAuthHeaders()
+        });
+        return response.data;
+    },
+
+    /**
+     * Poll task status until completion or failure.
+     * Returns a cleanup function to stop polling.
+     * 
+     * @param taskId - The task ID to poll
+     * @param onUpdate - Callback for each status update
+     * @param interval - Polling interval in ms (default: 2000)
+     */
+    pollTaskStatus: (
+        taskId: string,
+        onUpdate: (status: TaskStatusResponse) => void,
+        interval: number = 2000
+    ): (() => void) => {
+        let active = true;
+
+        const poll = async () => {
+            if (!active) return;
+
+            try {
+                const status = await zeteApi.getTaskStatus(taskId);
+                onUpdate(status);
+
+                // Stop polling if terminal state
+                if (status.status === 'completed' || status.status === 'failed' || status.status === 'cancelled') {
+                    active = false;
+                    return;
+                }
+
+                // Schedule next poll
+                if (active) {
+                    setTimeout(poll, interval);
+                }
+            } catch (error) {
+                console.error('Task polling error:', error);
+                // Retry on error
+                if (active) {
+                    setTimeout(poll, interval * 2);
+                }
+            }
+        };
+
+        // Start polling
+        poll();
+
+        // Return cleanup function
+        return () => {
+            active = false;
+        };
+    },
+
+    /**
+     * Cancel a pending or processing task.
+     */
+    cancelTask: async (taskId: string): Promise<{ success: boolean; message: string }> => {
+        const response = await axios.delete(`${API_BASE_URL}/api/zete/tasks/${taskId}`, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     },
 

@@ -65,10 +65,17 @@ export interface ReconciliationResult {
     sow_amount: number | null;
 }
 
+export interface SourceDocument {
+    doc_id: string;
+    title?: string;
+    doc_type?: string;
+}
+
 export interface QueryResponse {
     success: boolean;
     question: string;
     answer?: string;
+    sources?: SourceDocument[];
     cypher_query?: string;
     raw_results?: any[];
     errors: string[];
@@ -83,3 +90,72 @@ export interface ChatMessage {
 }
 
 export type PanelType = 'graph' | 'document' | 'chat';
+
+// Document type filter options for chat queries
+export type DocumentTypeFilterOption = 'VisitingCard' | 'Brochure' | 'ProductCatalogue';
+
+// Async task status types
+export type TaskStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+
+export type ProcessingStep =
+    | 'queued'
+    | 'reading'
+    | 'classifying'
+    | 'extracting'
+    | 'resolving_entity'
+    | 'embedding'
+    | 'creating_node'
+    | 'creating_relationships'
+    | 'completed'
+    | 'failed';
+
+export interface TaskCreateResponse {
+    task_id: string;
+    status: TaskStatus;
+    message: string;
+    file_name: string;
+}
+
+export interface TaskStatusResponse {
+    task_id: string;
+    status: TaskStatus;
+    progress: number;
+    current_step?: ProcessingStep;
+    step_message?: string;
+    doc_id?: string;
+    document_type?: string;
+    metadata?: Record<string, any>;
+    error?: string;
+    errors?: string[];
+    warnings?: string[];
+    created_at?: string;
+    updated_at?: string;
+    completed_at?: string;
+}
+
+// Step progress mapping for UI
+export const STEP_PROGRESS: Record<ProcessingStep, number> = {
+    queued: 0,
+    reading: 10,
+    classifying: 25,
+    extracting: 45,
+    resolving_entity: 60,
+    embedding: 75,
+    creating_node: 85,
+    creating_relationships: 95,
+    completed: 100,
+    failed: -1,
+};
+
+export const STEP_LABELS: Record<ProcessingStep, string> = {
+    queued: 'Queued',
+    reading: 'Reading document...',
+    classifying: 'Classifying document type...',
+    extracting: 'Extracting metadata...',
+    resolving_entity: 'Resolving organization...',
+    embedding: 'Creating embeddings...',
+    creating_node: 'Creating graph node...',
+    creating_relationships: 'Creating relationships...',
+    completed: 'Complete!',
+    failed: 'Failed',
+};

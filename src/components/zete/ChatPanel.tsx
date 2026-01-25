@@ -8,6 +8,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { zeteApi } from "../../lib/zete-api";
 import { Avatar, AvatarFallback } from "../ui/avatar";
+import { SourceDocument } from "../../types/zete-types";
+import { DocumentTypeFilter, type DocumentTypeFilter as DocTypeFilter } from "./DocumentTypeFilter";
 
 interface Message {
     id: string;
@@ -15,6 +17,7 @@ interface Message {
     content: string;
     timestamp: Date;
     isError?: boolean;
+    sources?: SourceDocument[];
 }
 
 const suggestions = [
@@ -91,10 +94,15 @@ function WelcomeScreen({ onSuggestionClick }: { onSuggestionClick: (text: string
     );
 }
 
-export function ChatPanel() {
+interface ChatPanelProps {
+    onSourceClick?: (docId: string) => void;
+}
+
+export function ChatPanel({ onSourceClick }: ChatPanelProps) {
     const [input, setInput] = useState("");
     const [messages, setMessages] = useState<Message[]>([]);
     const [isTyping, setIsTyping] = useState(false);
+    const [selectedTypes, setSelectedTypes] = useState<DocTypeFilter[]>([]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -127,14 +135,16 @@ export function ChatPanel() {
         setIsTyping(true);
 
         try {
-            const response = await zeteApi.query(question);
+            // Pass document types filter to API (backend will use when implemented)
+            const response = await zeteApi.query(question, selectedTypes.length > 0 ? selectedTypes : undefined);
 
             const aiMsg: Message = {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
                 content: response.answer || "I found some results but couldn't generate a text answer.",
                 timestamp: new Date(),
-                isError: false
+                isError: false,
+                sources: response.sources || []
             };
             setMessages(prev => [...prev, aiMsg]);
         } catch (err) {
@@ -200,17 +210,51 @@ export function ChatPanel() {
                                     {msg.role === 'user' ? (
                                         msg.content
                                     ) : (
-                                        <div className="prose prose-sm max-w-none prose-p:my-2 prose-headings:font-serif prose-headings:font-medium prose-headings:text-gray-900 dark:prose-headings:text-zinc-200 prose-code:text-indigo-600 dark:prose-code:text-indigo-400 prose-code:bg-indigo-50 dark:prose-code:bg-indigo-900/30 prose-code:rounded prose-code:px-1 prose-pre:bg-gray-50 dark:prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-gray-100 dark:prose-pre:border-zinc-800 prose-pre:text-gray-800 dark:prose-pre:text-zinc-200 prose-strong:text-zinc-900 dark:prose-strong:text-zinc-100 prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-li:text-zinc-700 dark:prose-li:text-zinc-300 prose-div">
-                                            <ReactMarkdown
-                                                remarkPlugins={[remarkGfm]}
-                                                components={{
-                                                    pre: ({ node, ...props }: any) => <div className="overflow-auto !bg-gray-900 !text-gray-100 p-3 rounded-xl my-2 border border-gray-800 text-xs" {...props} />,
-                                                    code: ({ node, ...props }: any) => <code className="!bg-gray-100 !text-gray-800 rounded px-1.5 py-0.5 text-xs font-mono font-medium border border-gray-200" {...props} />
-                                                }}
-                                            >
-                                                {msg.content}
-                                            </ReactMarkdown>
-                                        </div>
+                                        <>
+                                            <div className="prose prose-sm max-w-none prose-p:my-2 prose-headings:font-serif prose-headings:font-medium prose-headings:text-gray-900 dark:prose-headings:text-zinc-200 prose-code:text-indigo-600 dark:prose-code:text-indigo-400 prose-code:bg-indigo-50 dark:prose-code:bg-indigo-900/30 prose-code:rounded prose-code:px-1 prose-pre:bg-gray-50 dark:prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-gray-100 dark:prose-pre:border-zinc-800 prose-pre:text-gray-800 dark:prose-pre:text-zinc-200 prose-strong:text-zinc-900 dark:prose-strong:text-zinc-100 prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-li:text-zinc-700 dark:prose-li:text-zinc-300 prose-div">
+                                                <ReactMarkdown
+                                                    remarkPlugins={[remarkGfm]}
+                                                    components={{
+                                                        pre: ({ node, ...props }: any) => <div className="overflow-auto !bg-gray-900 !text-gray-100 p-3 rounded-xl my-2 border border-gray-800 text-xs" {...props} />,
+                                                        code: ({ node, ...props }: any) => <code className="!bg-gray-100 !text-gray-800 rounded px-1.5 py-0.5 text-xs font-mono font-medium border border-gray-200" {...props} />
+                                                    }}
+                                                >
+                                                    {msg.content}
+                                                </ReactMarkdown>
+                                            </div>
+                                            {/* Source Citation Badges */}
+                                            {msg.sources && msg.sources.length > 0 && (
+                                                <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-gray-200/50 dark:border-zinc-700/50">
+                                                    <span className="text-[10px] text-gray-400 dark:text-zinc-500 uppercase tracking-wider font-medium mr-1 self-center">Sources:</span>
+                                                    {msg.sources.map((source, idx) => {
+                                                        // Color mapping based on document type
+                                                        const typeColors: Record<string, string> = {
+                                                            'MSA': 'bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300',
+                                                            'SOW': 'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300',
+                                                            'Invoice': 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300',
+                                                            'Addendum': 'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-300',
+                                                            'NDA': 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300',
+                                                            'Organization': 'bg-pink-100 text-pink-700 hover:bg-pink-200 dark:bg-pink-900/30 dark:text-pink-300',
+                                                            'VisitingCard': 'bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-300',
+                                                            'Brochure': 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300',
+                                                        };
+                                                        const colorClass = typeColors[source.doc_type || ''] || 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-zinc-700 dark:text-zinc-300';
+
+                                                        return (
+                                                            <button
+                                                                key={`${source.doc_id}-${idx}`}
+                                                                onClick={() => onSourceClick?.(source.doc_id)}
+                                                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium transition-all cursor-pointer ${colorClass}`}
+                                                                title={`Open ${source.title || source.doc_id}`}
+                                                            >
+                                                                <span className="opacity-60 text-[9px]">{source.doc_type || 'Doc'}</span>
+                                                                <span className="truncate max-w-[120px]">{source.title || source.doc_id}</span>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </motion.div>
@@ -235,8 +279,16 @@ export function ChatPanel() {
                 )}
             </div>
 
-            {/* Input */}
+            {/* Document Type Filters + Input */}
             <div className="flex-none p-4 pt-2 bg-gradient-to-t from-white via-white to-white/0 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-900/0 z-20">
+                {/* Filter Buttons */}
+                <div className="mb-3">
+                    <DocumentTypeFilter
+                        selectedTypes={selectedTypes}
+                        onTypesChange={setSelectedTypes}
+                        disabled={isTyping}
+                    />
+                </div>
                 <form onSubmit={handleSubmit} className="relative group">
                     <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl blur opacity-20 group-hover:opacity-50 transition-all duration-500 pointer-events-none" />
                     <input
