@@ -3,13 +3,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { IconSend, IconSparkles, IconSearch, IconBulb, IconFileText } from "@tabler/icons-react";
+import { IconSend, IconSparkles, IconSearch, IconBulb, IconFileText, IconShoppingCart, IconBook, IconAddressBook } from "@tabler/icons-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { zeteApi } from "../../lib/zete-api";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { SourceDocument } from "../../types/zete-types";
-import { DocumentTypeFilter, type DocumentTypeFilter as DocTypeFilter } from "./DocumentTypeFilter";
+import { type DocumentTypeFilter as DocTypeFilter } from "./DocumentTypeFilter";
 
 interface Message {
     id: string;
@@ -20,14 +20,54 @@ interface Message {
     sources?: SourceDocument[];
 }
 
-const suggestions = [
-    { icon: IconSearch, text: "Find all SOWs above $50k", color: "text-indigo-600", bg: "bg-indigo-50/50" },
-    { icon: IconFileText, text: "Summarize the Alpha Project MSA", color: "text-indigo-600", bg: "bg-indigo-50/50" },
-    { icon: IconBulb, text: "What are the payment terms?", color: "text-indigo-600", bg: "bg-indigo-50/50" },
-    { icon: IconSparkles, text: "Show me documents expiring soon", color: "text-indigo-600", bg: "bg-indigo-50/50" },
+// Filter-specific sample prompts
+const filterPrompts: Record<DocTypeFilter | 'default', { icon: typeof IconSearch; text: string; color: string; bg: string }[]> = {
+    'ProductCatalogue': [
+        { icon: IconSearch, text: "What products are in TH Foods?", color: "text-secondary", bg: "bg-secondary/30" },
+        { icon: IconBulb, text: "List all chips brands.", color: "text-secondary", bg: "bg-secondary/30" },
+    ],
+    'Brochure': [
+        { icon: IconFileText, text: "Get all brochures related to food", color: "text-secondary", bg: "bg-secondary/30" },
+        { icon: IconSparkles, text: "List contacts from brochures.", color: "text-secondary", bg: "bg-secondary/30" },
+    ],
+    'VisitingCard': [
+        { icon: IconSearch, text: "Find contact details for John Connor", color: "text-secondary", bg: "bg-secondary/30" },
+        { icon: IconBulb, text: "List all visiting cards from Snack Creations", color: "text-secondary", bg: "bg-secondary/30" },
+    ],
+    'default': [
+        { icon: IconFileText, text: "Get all brochures related to food", color: "text-secondary", bg: "bg-secondary/30" },
+        { icon: IconSparkles, text: "List contacts from brochures.", color: "text-secondary", bg: "bg-secondary/30" },
+        { icon: IconSearch, text: "Find contact details for John Connor", color: "text-secondary", bg: "bg-secondary/30" },
+        { icon: IconBulb, text: "List all visiting cards from Snack Creations", color: "text-secondary", bg: "bg-secondary/30" },
+    ],
+};
+
+// Get prompts based on selected filters
+const getPromptsForFilters = (selectedTypes: DocTypeFilter[]) => {
+    if (selectedTypes.length === 0) {
+        return filterPrompts['default'];
+    }
+    // Return prompts for the first selected filter
+    return filterPrompts[selectedTypes[0]] || filterPrompts['default'];
+};
+
+// Tab configuration - backendType is what gets sent to backend API
+const categoryTabs: { type: DocTypeFilter; backendType: DocTypeFilter; label: string; icon: typeof IconShoppingCart }[] = [
+    { type: 'ProductCatalogue', backendType: 'Brochure', label: 'Product Catalogue', icon: IconShoppingCart },
+    { type: 'Brochure', backendType: 'Brochure', label: 'Product Brochure', icon: IconBook },
+    { type: 'VisitingCard', backendType: 'VisitingCard', label: 'Visiting Card', icon: IconAddressBook },
 ];
 
-function WelcomeScreen({ onSuggestionClick }: { onSuggestionClick: (text: string) => void }) {
+function WelcomeScreen({ onSuggestionClick, onFilterSelect }: { onSuggestionClick: (text: string) => void; onFilterSelect: (filter: DocTypeFilter) => void }) {
+    const [activeTab, setActiveTab] = useState<DocTypeFilter | null>(null);
+    const currentPrompts = activeTab ? filterPrompts[activeTab] : filterPrompts['default'];
+    const promptsKey = activeTab || 'default';
+
+    const handleTabClick = (tab: typeof categoryTabs[0]) => {
+        setActiveTab(activeTab === tab.type ? null : tab.type);
+        // Send backendType to parent for API calls
+        onFilterSelect(tab.backendType);
+    };
     return (
         <motion.div
             initial="hidden"
@@ -60,36 +100,87 @@ function WelcomeScreen({ onSuggestionClick }: { onSuggestionClick: (text: string
 
             <motion.p
                 variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
-                className="text-gray-500 dark:text-zinc-400 max-w-sm text-sm mb-12 leading-relaxed"
+                className="text-gray-500 dark:text-zinc-400 max-w-md text-sm mb-8 leading-relaxed"
             >
-                Ask questions about your documents, contracts, or specific clauses in the knowledge graph.
+                Ask questions about sales & marketing documents listed below
             </motion.p>
 
+            {/* Category Tabs */}
             <motion.div
-                variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
-                className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg"
+                variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
+                className="flex flex-wrap justify-center gap-2 mb-8"
             >
-                {suggestions.map((s, i) => (
-                    <motion.button
-                        key={i}
-                        variants={{
-                            hidden: { opacity: 0, y: 10 },
-                            visible: { opacity: 1, y: 0 }
-                        }}
-                        whileHover={{ scale: 1.01, y: -1 }}
-                        whileTap={{ scale: 0.99 }}
-                        onClick={() => onSuggestionClick(s.text)}
-                        className="flex items-center p-3.5 rounded-xl border border-gray-100 bg-white hover:bg-gray-50/50 hover:border-indigo-100 dark:bg-zinc-800/50 dark:border-zinc-700 dark:hover:bg-zinc-700 transition-all text-left gap-3.5 group shadow-sm hover:shadow-md"
-                    >
-                        {/* <div className={`p-2 rounded-lg ${s.bg} ${s.color} transition-colors`}>
-                            <s.icon size={16} stroke={2} />
-                        </div> */}
-                        <span className="text-sm text-gray-600 group-hover:text-gray-900 dark:text-zinc-400 dark:group-hover:text-zinc-200 transition-colors font-medium">
-                            {s.text}
-                        </span>
-                    </motion.button>
-                ))}
+                {categoryTabs.map((tab) => {
+                    const isActive = activeTab === tab.type;
+                    const Icon = tab.icon;
+
+                    return (
+                        <motion.button
+                            key={tab.type}
+                            onClick={() => handleTabClick(tab)}
+                            whileHover={{ scale: 1.03, y: -1 }}
+                            whileTap={{ scale: 0.97 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                            className={`
+                                relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium
+                                transition-all duration-200 border overflow-hidden
+                                ${isActive
+                                    ? 'bg-secondary text-secondary-foreground border-secondary shadow-lg'
+                                    : 'text-secondary border-secondary/30 hover:border-secondary/50 bg-secondary/5 hover:bg-secondary/10 dark:text-secondary dark:border-secondary/30'
+                                }
+                            `}
+                        >
+                            <Icon size={16} stroke={2} className="relative z-10" />
+                            <span className="relative z-10">{tab.label}</span>
+                        </motion.button>
+                    );
+                })}
             </motion.div>
+
+            {/* Prompts Container - fixed height to prevent layout shift */}
+            <div className="min-h-[140px] flex items-start justify-center">
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={promptsKey}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg"
+                    >
+                        {currentPrompts.map((s, i) => (
+                            <motion.button
+                                key={`${promptsKey}-${i}`}
+                                initial={{ opacity: 0, scale: 0.96 }}
+                                animate={{
+                                    opacity: 1,
+                                    scale: 1,
+                                    transition: {
+                                        delay: i * 0.05,
+                                        duration: 0.25,
+                                        ease: [0.25, 0.46, 0.45, 0.94]
+                                    }
+                                }}
+                                whileHover={{
+                                    scale: 1.015,
+                                    boxShadow: "0 4px 20px -4px rgba(99, 102, 241, 0.2)",
+                                    transition: { duration: 0.2, ease: "easeOut" }
+                                }}
+                                whileTap={{ scale: 0.985 }}
+                                onClick={() => onSuggestionClick(s.text)}
+                                className="flex items-center p-3.5 rounded-xl border border-gray-100 bg-white hover:bg-gradient-to-r hover:from-white hover:to-indigo-50/30 hover:border-indigo-200 dark:bg-zinc-800/50 dark:border-zinc-700 dark:hover:bg-zinc-700 transition-colors text-left gap-3.5 group shadow-sm"
+                            >
+                                <div className={`p-2 rounded-lg ${s.bg} ${s.color} transition-transform duration-200 group-hover:scale-110`}>
+                                    <s.icon size={16} stroke={2} />
+                                </div>
+                                <span className="text-sm text-gray-600 group-hover:text-gray-900 dark:text-zinc-400 dark:group-hover:text-zinc-200 transition-colors font-medium">
+                                    {s.text}
+                                </span>
+                            </motion.button>
+                        ))}
+                    </motion.div>
+                </AnimatePresence>
+            </div>
         </motion.div>
     );
 }
@@ -179,7 +270,10 @@ export function ChatPanel({ onSourceClick }: ChatPanelProps) {
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 custom-scrollbar relative scroll-smooth">
                 {messages.length === 0 ? (
-                    <WelcomeScreen onSuggestionClick={handleSuggestionClick} />
+                    <WelcomeScreen
+                        onSuggestionClick={handleSuggestionClick}
+                        onFilterSelect={(filter) => setSelectedTypes([filter])}
+                    />
                 ) : (
                     <div className="space-y-8 py-4 px-2">
                         {messages.map((msg) => (
@@ -229,7 +323,7 @@ export function ChatPanel({ onSourceClick }: ChatPanelProps) {
                                                     {msg.sources.map((source, idx) => {
                                                         // Color mapping based on document type
                                                         const typeColors: Record<string, string> = {
-                                                            'MSA': 'bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300',
+                                                            'MSA': 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300',
                                                             'SOW': 'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300',
                                                             'Invoice': 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300',
                                                             'Addendum': 'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-300',
@@ -279,18 +373,10 @@ export function ChatPanel({ onSourceClick }: ChatPanelProps) {
                 )}
             </div>
 
-            {/* Document Type Filters + Input */}
+            {/* Input Area - Filter hidden */}
             <div className="flex-none p-4 pt-2 bg-gradient-to-t from-white via-white to-white/0 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-900/0 z-20">
-                {/* Filter Buttons */}
-                <div className="mb-3">
-                    <DocumentTypeFilter
-                        selectedTypes={selectedTypes}
-                        onTypesChange={setSelectedTypes}
-                        disabled={isTyping}
-                    />
-                </div>
                 <form onSubmit={handleSubmit} className="relative group">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl blur opacity-20 group-hover:opacity-50 transition-all duration-500 pointer-events-none" />
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-100 to-indigo-200 dark:from-indigo-900/20 dark:to-indigo-800/20 rounded-2xl blur opacity-20 group-hover:opacity-50 transition-all duration-500 pointer-events-none" />
                     <input
                         type="text"
                         value={input}
