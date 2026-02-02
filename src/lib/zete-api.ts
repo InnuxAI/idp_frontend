@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { GraphData, DocumentDetails, DocumentMetadata, SummaryResponse, ReconciliationResult, QueryResponse, TaskStatusResponse, TaskCreateResponse, ConversationMessage } from '@/types/zete-types';
+import { GraphData, DocumentDetails, DocumentMetadata, SummaryResponse, ReconciliationResult, QueryResponse, TaskStatusResponse, TaskCreateResponse, ConversationMessage, SearchResponse } from '@/types/zete-types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -218,6 +218,44 @@ export const zeteApi = {
 
     getNodeMetadata: async (docId: string): Promise<Record<string, any>> => {
         const response = await axios.get(`${API_BASE_URL}/api/zete/graph/node/${docId}/metadata`, {
+            headers: getAuthHeaders()
+        });
+        return response.data;
+    },
+
+    /**
+     * Search documents by filename and metadata.
+     * Uses filesystem-based search with Neo4j metadata.
+     * Future: Will be upgraded to Meilisearch for full-text search.
+     * 
+     * @param query - Search query string
+     * @param options - Optional filters and pagination
+     */
+    search: async (
+        query: string,
+        options?: {
+            docTypes?: string[];
+            organization?: string;
+            limit?: number;
+            offset?: number;
+        }
+    ): Promise<SearchResponse> => {
+        const params = new URLSearchParams({ q: query });
+
+        if (options?.docTypes?.length) {
+            options.docTypes.forEach(t => params.append('doc_type', t));
+        }
+        if (options?.organization) {
+            params.append('organization', options.organization);
+        }
+        if (options?.limit) {
+            params.append('limit', options.limit.toString());
+        }
+        if (options?.offset) {
+            params.append('offset', options.offset.toString());
+        }
+
+        const response = await axios.get(`${API_BASE_URL}/api/zete/search?${params}`, {
             headers: getAuthHeaders()
         });
         return response.data;

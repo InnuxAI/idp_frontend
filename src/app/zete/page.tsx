@@ -6,6 +6,7 @@ import { KnowledgeGraph, KnowledgeGraphHandle } from "@/components/zete/Knowledg
 import { DocumentPanel } from "@/components/zete/DocumentPanel";
 import { ChatPanel } from "@/components/zete/ChatPanel";
 import { ZeteUploadModal } from "@/components/zete/ZeteUploadModal";
+import { SearchDropdown } from "@/components/zete/SearchDropdown";
 import { UploadNotifications } from "@/components/zete/UploadNotifications";
 import { zeteApi } from "@/lib/zete-api";
 import { GraphData, GraphNode, DocumentDetails } from "@/types/zete-types";
@@ -216,8 +217,24 @@ function ZetePageContent() {
                         </Breadcrumb>
                     </div>
 
-                    {/* Upload Button + Panel Toggle Buttons */}
+                    {/* Search + Upload Buttons + Panel Toggle Buttons */}
                     <div className="flex items-center gap-3">
+                        {/* Search Dropdown */}
+                        <SearchDropdown
+                            onSelectDocument={async (docId) => {
+                                try {
+                                    const doc = await zeteApi.getDocument(docId);
+                                    setSelectedDocument(doc);
+                                    setShowDocument(true);
+                                    if (showGraph) {
+                                        graphRef.current?.selectNodeById(docId);
+                                    }
+                                } catch (error) {
+                                    console.error('Failed to load document:', error);
+                                }
+                            }}
+                        />
+
                         {/* Upload Button - Separate from toggle */}
                         <motion.button
                             onClick={() => setShowUploadModal(true)}

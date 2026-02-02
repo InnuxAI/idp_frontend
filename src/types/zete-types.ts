@@ -165,3 +165,24 @@ export const STEP_LABELS: Record<ProcessingStep, string> = {
     completed: 'Complete!',
     failed: 'Failed',
 };
+
+// Search types
+export interface SearchHit {
+    doc_id: string;
+    filename: string;
+    title?: string;
+    doc_type?: string;
+    file_path?: string;
+    organization_name?: string;
+    summary?: string;
+    score: number;
+    highlights: Record<string, string>;
+}
+
+export interface SearchResponse {
+    query: string;
+    hits: SearchHit[];
+    total: number;
+    processing_time_ms: number;
+    facets: Record<string, Record<string, number>>;
+}
