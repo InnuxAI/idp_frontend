@@ -65,6 +65,12 @@ export interface ReconciliationResult {
     sow_amount: number | null;
 }
 
+
+export interface ConversationMessage {
+    role: 'user' | 'assistant';
+    content: string;
+}
+
 export interface SourceDocument {
     doc_id: string;
     title?: string;

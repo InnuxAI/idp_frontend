@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { GraphData, DocumentDetails, DocumentMetadata, SummaryResponse, ReconciliationResult, QueryResponse, TaskStatusResponse, TaskCreateResponse } from '@/types/zete-types';
+import { GraphData, DocumentDetails, DocumentMetadata, SummaryResponse, ReconciliationResult, QueryResponse, TaskStatusResponse, TaskCreateResponse, ConversationMessage } from '@/types/zete-types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -66,10 +66,22 @@ export const zeteApi = {
         return response.data;
     },
 
-    query: async (question: string, documentTypes?: string[]): Promise<QueryResponse> => {
+    /**
+     * Query documents using natural language.
+     * 
+     * @param question - The question to ask
+     * @param documentTypes - Optional list of document types to filter by
+     * @param conversationHistory - Optional previous messages for conversational context (max 5 Q&A pairs)
+     */
+    query: async (
+        question: string,
+        documentTypes?: string[],
+        conversationHistory?: ConversationMessage[]
+    ): Promise<QueryResponse> => {
         const response = await axios.post(`${API_BASE_URL}/api/zete/query`, {
             question,
-            document_types: documentTypes?.length ? documentTypes : undefined
+            document_types: documentTypes?.length ? documentTypes : undefined,
+            conversation_history: conversationHistory?.length ? conversationHistory : undefined
         }, {
             headers: getAuthHeaders()
         });

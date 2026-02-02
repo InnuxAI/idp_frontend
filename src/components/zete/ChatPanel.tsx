@@ -8,7 +8,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { zeteApi } from "../../lib/zete-api";
 import { Avatar, AvatarFallback } from "../ui/avatar";
-import { SourceDocument } from "../../types/zete-types";
+import { SourceDocument, ConversationMessage } from "../../types/zete-types";
 import { type DocumentTypeFilter as DocTypeFilter } from "./DocumentTypeFilter";
 
 interface Message {
@@ -208,6 +208,26 @@ export function ChatPanel({ onSourceClick }: ChatPanelProps) {
         setInput(text);
     };
 
+    /**
+     * Extract conversation history for API context.
+     * Returns last N Q&A pairs (excluding error messages).
+     */
+    const getConversationHistory = (msgs: Message[], maxPairs: number = 5): ConversationMessage[] => {
+        // Filter to only user and assistant messages with content, excluding errors
+        const relevantMessages = msgs
+            .filter(m => m.role === 'user' || m.role === 'assistant')
+            .filter(m => m.content && !m.isError);
+
+        // Take last N pairs (maxPairs * 2 messages)
+        const maxMessages = maxPairs * 2;
+        const recentMessages = relevantMessages.slice(-maxMessages);
+
+        return recentMessages.map(m => ({
+            role: m.role,
+            content: m.content
+        }));
+    };
+
     const handleSubmit = async (e: React.FormEvent, overrideInput?: string) => {
         e.preventDefault();
         const textToSend = overrideInput || input;
@@ -226,8 +246,15 @@ export function ChatPanel({ onSourceClick }: ChatPanelProps) {
         setIsTyping(true);
 
         try {
-            // Pass document types filter to API (backend will use when implemented)
-            const response = await zeteApi.query(question, selectedTypes.length > 0 ? selectedTypes : undefined);
+            // Get conversation history (last 5 Q&A pairs) for context
+            const history = getConversationHistory(messages, 5);
+
+            // Pass document types filter and conversation history to API
+            const response = await zeteApi.query(
+                question,
+                selectedTypes.length > 0 ? selectedTypes : undefined,
+                history.length > 0 ? history : undefined
+            );
 
             const aiMsg: Message = {
                 id: (Date.now() + 1).toString(),
