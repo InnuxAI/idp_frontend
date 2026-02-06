@@ -76,8 +76,13 @@ export function LoginForm() {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="flex items-center gap-2"
           >
-            <img src="/innuxlogo.svg" alt="Innux Logo" className="h-8 w-auto" />
-            <span className="font-bold tracking-tight text-xl text-black">Innux AI</span>
+            <div className="backdrop-blur-md p-1.5 rounded-lg border border-white/10">
+              <img src="https://www.emamiltd.in/wp-content/themes/emami/images/emami_new_logo2.png" alt="Emami Logo" className="h-16 w-auto" />
+            </div>
+            <div className="backdrop-blur-md py-1.5 px-2 rounded-lg border border-white/10">
+              <img src="/innuxlogo.svg" alt="Innux Logo" className="h-16 w-auto" />
+            </div>
+            {/* <span className="font-bold tracking-tight text-xl text-black">Innux AI</span> */}
           </motion.div>
         </div>
 

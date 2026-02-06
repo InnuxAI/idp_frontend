@@ -212,7 +212,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               >
                 <a href="#">
                   <motion.img
-                    src="/innuxlogo.svg"
+                    src="https://www.emamiltd.in/wp-content/themes/emami/images/emami_new_logo2.png"
                     alt="Innux AI Logo"
                     className="h-8 w-auto"
                     initial={{ rotate: 270 }}
@@ -220,10 +220,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
                   />
                   <div className="flex items-baseline gap-2 leading-none">
-                    <span className="text-lg font-bold tracking-tight ">Innux AI</span>
-                    <span className="text-xs italic text-muted-foreground tracking-tight">
-                      your thinking partner
-                    </span>
+                    <span className="text-lg font-bold tracking-tight ">Emami Agrotech</span>
+                    {/* <span className="text-xs italic text-muted-foreground tracking-tight">
+                      Nourishing People, Powering Progress
+                    </span> */}
                   </div>
                 </a>
               </SidebarMenuButton>

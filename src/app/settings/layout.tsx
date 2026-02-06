@@ -10,6 +10,7 @@ import {
     IconShield,
     IconPalette,
     IconKey,
+    IconBrain,
     IconChevronRight,
 } from "@tabler/icons-react"
 import { AppSidebar } from "@/components/app-sidebar"
@@ -59,6 +60,12 @@ const settingsNavItems = [
         href: "/settings/api-keys",
         icon: IconKey,
         description: "Developer access",
+    },
+    {
+        title: "AI Models",
+        href: "/settings/ai-models",
+        icon: IconBrain,
+        description: "LLM provider",
     },
 ]
 

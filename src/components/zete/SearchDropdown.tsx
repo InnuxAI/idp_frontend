@@ -2,8 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, Loader2, FileText, Building2, ChevronRight } from 'lucide-react';
-import { IconSearch } from '@tabler/icons-react';
+import { IconSearch, IconX, IconLoader2, IconFile, IconBuilding, IconChevronRight, IconUser, IconBook, IconReceipt, IconFileText, IconClipboardList, IconPackage, IconFolder } from '@tabler/icons-react';
 import { zeteApi } from '@/lib/zete-api';
 import { SearchHit, SearchResponse } from '@/types/zete-types';
 
@@ -41,6 +40,10 @@ export function SearchDropdown({ onSelectDocument }: SearchDropdownProps) {
         const handleClickOutside = (event: MouseEvent) => {
             if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
                 setIsOpen(false);
+                setQuery('');
+                setResults([]);
+                setFacets({});
+                setSelectedTypes([]);
             }
         };
 
@@ -55,6 +58,10 @@ export function SearchDropdown({ onSelectDocument }: SearchDropdownProps) {
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape' && isOpen) {
                 setIsOpen(false);
+                setQuery('');
+                setResults([]);
+                setFacets({});
+                setSelectedTypes([]);
             }
         };
         document.addEventListener('keydown', handleEscape);
@@ -121,6 +128,8 @@ export function SearchDropdown({ onSelectDocument }: SearchDropdownProps) {
         setIsOpen(false);
         setQuery('');
         setResults([]);
+        setFacets({});
+        setSelectedTypes([]);
     };
 
     // Clear search
@@ -133,15 +142,16 @@ export function SearchDropdown({ onSelectDocument }: SearchDropdownProps) {
 
     // Get icon for document type
     const getDocTypeIcon = (docType: string) => {
+        const iconClass = "h-4 w-4";
         switch (docType) {
-            case 'VisitingCard': return '👤';
-            case 'Brochure': return '📘';
-            case 'Invoice': return '💰';
-            case 'MSA': return '📄';
-            case 'SOW': return '📋';
-            case 'Organization': return '🏢';
-            case 'ProductCatalogue': return '📦';
-            default: return '📁';
+            case 'VisitingCard': return <IconUser className={iconClass} />;
+            case 'Brochure': return <IconBook className={iconClass} />;
+            case 'Invoice': return <IconReceipt className={iconClass} />;
+            case 'MSA': return <IconFileText className={iconClass} />;
+            case 'SOW': return <IconClipboardList className={iconClass} />;
+            case 'Organization': return <IconBuilding className={iconClass} />;
+            case 'ProductCatalogue': return <IconPackage className={iconClass} />;
+            default: return <IconFolder className={iconClass} />;
         }
     };
 
@@ -231,7 +241,7 @@ export function SearchDropdown({ onSelectDocument }: SearchDropdownProps) {
                         {/* Search Input */}
                         <div className="p-3 border-b border-gray-100 dark:border-zinc-800">
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                 <input
                                     ref={inputRef}
                                     type="text"
@@ -243,7 +253,7 @@ export function SearchDropdown({ onSelectDocument }: SearchDropdownProps) {
                                              bg-gray-50 dark:bg-zinc-800 dark:text-white placeholder-gray-400"
                                 />
                                 {loading && (
-                                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-500 animate-spin" />
+                                    <IconLoader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-500 animate-spin" />
                                 )}
                                 {!loading && query && (
                                     <motion.button
@@ -252,7 +262,7 @@ export function SearchDropdown({ onSelectDocument }: SearchDropdownProps) {
                                         whileTap={{ scale: 0.9 }}
                                         className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 flex items-center justify-center rounded-full bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-zinc-600"
                                     >
-                                        <X className="h-3 w-3" />
+                                        <IconX className="h-3 w-3" />
                                     </motion.button>
                                 )}
                             </div>
@@ -274,7 +284,7 @@ export function SearchDropdown({ onSelectDocument }: SearchDropdownProps) {
                                                 onClick={() => toggleTypeFilter(type)}
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
-                                                className={`px-2.5 py-1 text-xs rounded-full transition-all ${selectedTypes.includes(type)
+                                                className={`px-2.5 py-1 text-xs rounded-full transition-all flex items-center gap-1.5 ${selectedTypes.includes(type)
                                                     ? 'bg-indigo-500 text-white shadow-sm'
                                                     : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
                                                     }`}
@@ -303,13 +313,13 @@ export function SearchDropdown({ onSelectDocument }: SearchDropdownProps) {
                                             whileHover={{ backgroundColor: 'rgba(99, 102, 241, 0.08)' }}
                                             className="w-full px-3 py-2.5 text-left flex items-start gap-3 border-b border-gray-50 dark:border-zinc-800/50 last:border-0 transition-colors"
                                         >
-                                            <motion.span
-                                                className="text-xl flex-shrink-0 mt-0.5"
+                                            <motion.div
+                                                className="flex-shrink-0 mt-0.5 text-gray-500 dark:text-gray-400"
                                                 whileHover={{ scale: 1.2, rotate: 5 }}
                                                 transition={{ type: 'spring', stiffness: 400 }}
                                             >
                                                 {getDocTypeIcon(hit.doc_type || '')}
-                                            </motion.span>
+                                            </motion.div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2">
                                                     <span
@@ -333,13 +343,13 @@ export function SearchDropdown({ onSelectDocument }: SearchDropdownProps) {
                                                     </span>
                                                     {hit.organization_name && (
                                                         <span className="flex items-center gap-1 text-[10px] text-gray-400 dark:text-gray-500">
-                                                            <Building2 className="h-2.5 w-2.5" />
+                                                            <IconBuilding className="h-2.5 w-2.5" />
                                                             {hit.organization_name}
                                                         </span>
                                                     )}
                                                 </div>
                                             </div>
-                                            <ChevronRight className="h-4 w-4 text-gray-300 dark:text-gray-600 flex-shrink-0 mt-1" />
+                                            <IconChevronRight className="h-4 w-4 text-gray-300 dark:text-gray-600 flex-shrink-0 mt-1" />
                                         </motion.button>
                                     ))}
                                 </motion.div>
@@ -354,7 +364,7 @@ export function SearchDropdown({ onSelectDocument }: SearchDropdownProps) {
                                         animate={{ y: 0 }}
                                         transition={{ type: 'spring', stiffness: 300 }}
                                     >
-                                        <FileText className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                                        <IconFile className="h-10 w-10 mx-auto mb-3 opacity-30" />
                                         <p className="text-sm font-medium">No documents found</p>
                                         <p className="text-xs mt-1 opacity-70">Try a different search term</p>
                                     </motion.div>
@@ -365,7 +375,7 @@ export function SearchDropdown({ onSelectDocument }: SearchDropdownProps) {
                                     animate={{ opacity: 1 }}
                                     className="px-4 py-8 text-center text-gray-400 dark:text-gray-500"
                                 >
-                                    <Search className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                                    <IconSearch className="h-8 w-8 mx-auto mb-2 opacity-30" />
                                     <p className="text-sm">Start typing to search</p>
                                 </motion.div>
                             ) : null}
@@ -386,9 +396,10 @@ export function SearchDropdown({ onSelectDocument }: SearchDropdownProps) {
                             )}
                         </AnimatePresence>
                     </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
+                )
+                }
+            </AnimatePresence >
+        </div >
     );
 }
 

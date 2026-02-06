@@ -32,8 +32,8 @@ function ZetePageContent() {
     const [isLoading, setIsLoading] = useState(true);
 
     // Panel visibility state
-    const [showChat, setShowChat] = useState(false);
-    const [showGraph, setShowGraph] = useState(true);
+    const [showChat, setShowChat] = useState(true);
+    const [showGraph, setShowGraph] = useState(false);
     const [showDocument, setShowDocument] = useState(true);
 
     // Upload modal state
