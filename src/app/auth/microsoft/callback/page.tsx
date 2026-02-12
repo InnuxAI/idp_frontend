@@ -1,12 +1,27 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { authAPI } from '@/lib/auth-api'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function MicrosoftCallbackPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-black">
+                <div className="text-center space-y-4">
+                    <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto" />
+                    <h2 className="text-xl font-semibold text-white">Loading...</h2>
+                </div>
+            </div>
+        }>
+            <MicrosoftCallbackContent />
+        </Suspense>
+    )
+}
+
+function MicrosoftCallbackContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing')
