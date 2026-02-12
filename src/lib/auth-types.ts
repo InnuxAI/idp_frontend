@@ -38,6 +38,7 @@ export interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>
+  loginWithMicrosoft: () => Promise<void>
   logout: () => void
   traditionalSignup: (email: string, password: string, confirmPassword: string, firstName: string, lastName: string) => Promise<{ success: boolean; pending: boolean } | undefined>
   otpSignup: (email: string) => Promise<void>

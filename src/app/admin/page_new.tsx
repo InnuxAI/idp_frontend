@@ -30,7 +30,7 @@ interface User {
   last_name: string
   role: string
   approval_status: string
-  signup_type: string
+  signup_method: string
   is_active: boolean
   created_at: string
 }
@@ -129,12 +129,12 @@ export default function AdminPanel() {
   }
 
   const getTypeBadge = (type: string) => {
-    return type === 'traditional' 
+    return type === 'traditional'
       ? <Badge variant="secondary" className="bg-[#262626] text-[#a3a3a3]">Form</Badge>
       : <Badge variant="outline" className="bg-[#171717] text-[#3b82f6] border-[#3b82f6]">OTP</Badge>
   }
 
-  const filteredUsers = users.filter(user => 
+  const filteredUsers = users.filter(user =>
     user.email.toLowerCase().includes(filter.toLowerCase()) ||
     user.first_name?.toLowerCase().includes(filter.toLowerCase()) ||
     user.last_name?.toLowerCase().includes(filter.toLowerCase())
@@ -227,7 +227,7 @@ export default function AdminPanel() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>{getTypeBadge(user.signup_type)}</TableCell>
+                      <TableCell>{getTypeBadge(user.signup_method)}</TableCell>
                       <TableCell className="text-[#a3a3a3] capitalize">{user.role}</TableCell>
                       <TableCell>{getStatusBadge(user.approval_status, user.is_active)}</TableCell>
                       <TableCell className="text-[#a3a3a3]">
@@ -243,14 +243,14 @@ export default function AdminPanel() {
                           <DropdownMenuContent align="end" className="bg-[#171717] border-[#262626]">
                             {user.approval_status === 'pending' && (
                               <>
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   onClick={() => approveUser(user.id)}
                                   className="text-[#10b981] focus:text-[#10b981] focus:bg-[#262626]"
                                 >
                                   <Check className="h-4 w-4 mr-2" />
                                   Approve
                                 </DropdownMenuItem>
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   onClick={() => rejectUser(user.id)}
                                   className="text-red-400 focus:text-red-300 focus:bg-[#262626]"
                                 >
@@ -283,7 +283,7 @@ export default function AdminPanel() {
           </p>
           <div className="flex items-center gap-2">
             <span className="text-sm text-[#a3a3a3]">Rows per page</span>
-            <select 
+            <select
               className="bg-[#262626] border-[#404040] text-[#fafafa] text-sm rounded px-2 py-1"
               aria-label="Rows per page"
             >

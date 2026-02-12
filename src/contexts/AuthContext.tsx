@@ -264,11 +264,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return state.user.permissions.includes(permission)
   }
 
+  // Microsoft login function
+  const loginWithMicrosoft = async () => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true })
+
+      // Get Microsoft authorization URL from backend
+      const authorizationUrl = await authAPI.loginWithMicrosoft()
+
+      // Redirect to Microsoft login page
+      window.location.href = authorizationUrl
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to initiate Microsoft login')
+      dispatch({ type: 'SET_LOADING', payload: false })
+      throw error
+    }
+  }
+
   const contextValue: AuthContextType = {
     user: state.user,
     isAuthenticated: state.isAuthenticated,
     isLoading: state.isLoading,
     login,
+    loginWithMicrosoft,
     logout,
     traditionalSignup,
     otpSignup,

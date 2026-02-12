@@ -16,7 +16,7 @@ import { LoginFormData, loginSchema } from "@/lib/auth-types"
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
-  const { login, isLoading } = useAuth()
+  const { login, loginWithMicrosoft, isLoading } = useAuth()
   const router = useRouter()
 
   const form = useForm<LoginFormData>({
@@ -193,6 +193,39 @@ export function LoginForm() {
                 ) : (
                   "Sign In"
                 )}
+              </Button>
+
+              {/* OR Divider */}
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-zinc-800"></div>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-black px-2 text-zinc-500">Or continue with</span>
+                </div>
+              </div>
+
+              {/* Microsoft Sign-In Button */}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-11 bg-zinc-900/50 border-zinc-800 text-white hover:bg-zinc-800 hover:border-zinc-700 transition-all duration-200"
+                onClick={async () => {
+                  try {
+                    await loginWithMicrosoft()
+                  } catch (error) {
+                    console.error('Microsoft login error:', error)
+                  }
+                }}
+                disabled={isLoading}
+              >
+                <svg className="mr-2 h-5 w-5" viewBox="0 0 21 21">
+                  <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+                  <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+                  <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+                  <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+                </svg>
+                Sign in with Microsoft
               </Button>
             </form>
 
