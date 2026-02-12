@@ -66,9 +66,10 @@ function MicrosoftCallbackContent() {
                         setStatus('success')
                         toast.success('Successfully signed in with Microsoft!')
 
-                        // Redirect to dashboard
+                        // Full page redirect to dashboard (not client-side nav)
+                        // This ensures AuthProvider re-initializes with the new credentials
                         setTimeout(() => {
-                            router.push('/dashboard')
+                            window.location.href = '/dashboard'
                         }, 1000)
                     } else {
                         throw new Error('Unexpected response from server')

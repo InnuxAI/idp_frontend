@@ -233,11 +233,19 @@ class AuthAPI {
       const response = await this.api.post<AuthResponse>('/auth/login', data)
 
       if (response.data.success && response.data.data?.access_token) {
+        // Clear any stale cached user from previous session
+        this.clearCachedUser()
+
         this.setToken(response.data.data.access_token, data.remember_me)
 
         // Store refresh token if provided
         if (response.data.data?.refresh_token) {
           this.setRefreshToken(response.data.data.refresh_token, data.remember_me)
+        }
+
+        // Cache the new user data
+        if (response.data.data?.user) {
+          this.setCachedUser(response.data.data.user as User)
         }
       }
 
@@ -460,12 +468,20 @@ class AuthAPI {
       })
 
       if (response.data.success && response.data.data?.access_token) {
+        // Clear any stale cached user from previous session
+        this.clearCachedUser()
+
         // Store tokens (Microsoft users are auto-approved, so no remember_me needed)
         this.setToken(response.data.data.access_token, false)
 
         // Store refresh token if provided
         if (response.data.data.refresh_token) {
           this.setRefreshToken(response.data.data.refresh_token, false)
+        }
+
+        // Cache the new user data so validateToken doesn't return stale data
+        if (response.data.data.user) {
+          this.setCachedUser(response.data.data.user as User)
         }
 
         // Clear OAuth state

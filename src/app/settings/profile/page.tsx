@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { toast } from "sonner"
 import {
@@ -47,6 +47,14 @@ export default function ProfilePage() {
     const [location, setLocation] = useState("San Francisco, CA")
     const [bio, setBio] = useState("Building the future of IDP.")
     const [website, setWebsite] = useState("https://innux.ai")
+
+    // Sync form state when user data loads/changes
+    useEffect(() => {
+        if (user) {
+            setFirstName(user.first_name || "")
+            setLastName(user.last_name || "")
+        }
+    }, [user])
 
     const initials = getInitials(user?.first_name || "A", user?.last_name || "U")
 
