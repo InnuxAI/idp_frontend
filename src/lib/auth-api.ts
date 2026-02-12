@@ -426,6 +426,58 @@ class AuthAPI {
     }
   }
 
+  // Microsoft OAuth methods
+  async loginWithMicrosoft(): Promise<string> {
+    /**
+     * Initiate Microsoft OAuth login flow
+     * Returns the authorization URL to redirect the user to
+     */
+    try {
+      const response = await this.api.get<ApiResponse<{ authorization_url: string; state: string }>>('/auth/microsoft/login')
+
+      if (response.data.success && response.data.data?.authorization_url) {
+        // Store state for CSRF protection (optional)
+        if (response.data.data.state) {
+          sessionStorage.setItem('microsoft_oauth_state', response.data.data.state)
+        }
+        return response.data.data.authorization_url
+      }
+
+      throw new Error('Failed to get Microsoft authorization URL')
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
+  async handleMicrosoftCallback(code: string, state?: string): Promise<AuthResponse> {
+    /**
+     * Handle Microsoft OAuth callback
+     * Exchanges the authorization code for our JWT tokens
+     */
+    try {
+      const response = await this.api.get<AuthResponse>('/auth/microsoft/callback', {
+        params: { code, state }
+      })
+
+      if (response.data.success && response.data.data?.access_token) {
+        // Store tokens (Microsoft users are auto-approved, so no remember_me needed)
+        this.setToken(response.data.data.access_token, false)
+
+        // Store refresh token if provided
+        if (response.data.data.refresh_token) {
+          this.setRefreshToken(response.data.data.refresh_token, false)
+        }
+
+        // Clear OAuth state
+        sessionStorage.removeItem('microsoft_oauth_state')
+      }
+
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
   private handleError(error: any): Error {
     if (axios.isAxiosError(error)) {
       const message = error.response?.data?.detail ||

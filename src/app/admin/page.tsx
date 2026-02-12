@@ -52,7 +52,7 @@ interface User {
   last_name: string
   role: string
   approval_status: string
-  signup_type: string
+  signup_method: string
   is_active: boolean
   created_at: string
 }
@@ -334,7 +334,7 @@ export default function AdminPanel() {
                                   )}
                                 </div>
                               </TableCell>
-                              <TableCell>{getTypeBadge(user.signup_type)}</TableCell>
+                              <TableCell>{getTypeBadge(user.signup_method)}</TableCell>
                               <TableCell className="text-muted-foreground capitalize">
                                 {user.role || <span className="italic">No role assigned</span>}
                               </TableCell>
