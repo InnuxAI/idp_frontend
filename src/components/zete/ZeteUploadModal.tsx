@@ -567,10 +567,10 @@ export const ZeteUploadModal: React.FC<ZeteUploadModalProps> = ({
                             <div className="flex items-center justify-between p-5 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
                                 <div>
                                     <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                                        Upload to Knowledge Graph
+                                        Upload to Emami Library
                                     </h2>
                                     <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-                                        Add documents with optional context for better search
+                                        Add documents with optional context for better results
                                     </p>
                                 </div>
                                 <motion.button

@@ -219,6 +219,18 @@ function ZetePageContent() {
 
                     {/* Search + Upload Buttons + Panel Toggle Buttons */}
                     <div className="flex items-center gap-3">
+                        
+                        {/* Upload Button - Separate from toggle */}
+                        <motion.button
+                            onClick={() => setShowUploadModal(true)}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white shadow-md shadow-orange-500/20 transition-colors"
+                        >
+                            <IconUpload size={14} />
+                            <span className="hidden sm:inline">Upload</span>
+                        </motion.button>
+
                         {/* Search Dropdown */}
                         <SearchDropdown
                             onSelectDocument={async (docId) => {
@@ -234,17 +246,6 @@ function ZetePageContent() {
                                 }
                             }}
                         />
-
-                        {/* Upload Button - Separate from toggle */}
-                        <motion.button
-                            onClick={() => setShowUploadModal(true)}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white shadow-md shadow-orange-500/20 transition-colors"
-                        >
-                            <IconUpload size={14} />
-                            <span className="hidden sm:inline">Upload</span>
-                        </motion.button>
 
                         {/* Panel Toggle Buttons */}
                         <div className="flex items-center gap-1 bg-gray-200 dark:bg-zinc-800 p-1 rounded-lg transition-colors">

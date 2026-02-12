@@ -434,6 +434,23 @@ class AuthAPI {
     }
   }
 
+  // Admin methods
+  async adminCreateUser(data: {
+    email: string
+    first_name: string
+    last_name: string
+    role: string
+    auth_method: string
+    password?: string
+  }): Promise<ApiResponse> {
+    try {
+      const response = await this.api.post<ApiResponse>('/auth/admin/create-user', data)
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
   // Microsoft OAuth methods
   async loginWithMicrosoft(): Promise<string> {
     /**

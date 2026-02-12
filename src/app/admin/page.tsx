@@ -27,9 +27,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Card, CardContent } from "@/components/ui/card"
-import { UserPlus, MoreHorizontal, Check, X, Filter, Trash2, Settings, Users } from "lucide-react"
+import { MoreHorizontal, Check, X, Filter, Trash2, Settings, Users } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
+import { AddUserModal } from "@/components/admin/AddUserModal"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import {
@@ -269,10 +270,7 @@ export default function AdminPanel() {
                       Manage Roles
                     </Link>
                   </Button>
-                  <Button>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Add User
-                  </Button>
+                  <AddUserModal onUserCreated={fetchUsers} />
                 </div>
               </div>
 

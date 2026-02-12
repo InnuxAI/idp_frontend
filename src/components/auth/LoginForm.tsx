@@ -76,25 +76,28 @@ export function LoginForm() {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="flex items-center gap-2"
           >
-            <div className="backdrop-blur-md p-1.5 rounded-lg border border-white/10">
-              <img src="https://www.emamiltd.in/wp-content/themes/emami/images/emami_new_logo2.png" alt="Emami Logo" className="h-16 w-auto" />
-            </div>
-            <div className="backdrop-blur-md py-1.5 px-2 rounded-lg border border-white/10">
-              <img src="/innuxlogo.svg" alt="Innux Logo" className="h-16 w-auto" />
-            </div>
+            <img src="https://www.emamiltd.in/wp-content/themes/emami/images/emami_new_logo2.png" alt="Emami Logo" className="h-16 w-auto" />
             {/* <span className="font-bold tracking-tight text-xl text-black">Innux AI</span> */}
           </motion.div>
         </div>
 
         {/* Tagline */}
         <div className="relative z-20 mt-auto">
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+            className="text-lg font-medium leading-relaxed text-zinc-300"
+          >
+            Powered by Innux AI
+          </motion.p>
           <motion.blockquote
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
             className="space-y-2"
           >
-            <p className="text-lg font-light leading-relaxed text-zinc-300">
+            <p className="text-md font-light leading-relaxed text-zinc-300">
               &ldquo;Your intelligent thinking partner for document processing and knowledge extraction. Experience the power of AI-driven insights.&rdquo;
             </p>
           </motion.blockquote>
