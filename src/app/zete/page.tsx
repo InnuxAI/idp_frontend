@@ -219,7 +219,7 @@ function ZetePageContent() {
 
                     {/* Search + Upload Buttons + Panel Toggle Buttons */}
                     <div className="flex items-center gap-3">
-                        
+
                         {/* Upload Button - Separate from toggle */}
                         <motion.button
                             onClick={() => setShowUploadModal(true)}
@@ -357,11 +357,10 @@ function ZetePageContent() {
                     </AnimatePresence>
 
                     {/* Right: Document Details */}
-                    <AnimatePresence mode="popLayout">
+                    <AnimatePresence mode="wait">
                         {showDocument && (
                             <motion.div
                                 key="document-panel"
-                                layout
                                 variants={panelVariants}
                                 initial="hidden"
                                 animate="visible"

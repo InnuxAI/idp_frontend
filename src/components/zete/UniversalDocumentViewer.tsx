@@ -1,8 +1,6 @@
 "use client";
 
-import { memo, useMemo, useState, useEffect } from "react";
-import DocViewer, { DocViewerRenderers, IDocument, ITheme } from "@cyntler/react-doc-viewer";
-import "@cyntler/react-doc-viewer/dist/index.css";
+import { memo, useMemo, useState, useEffect, useRef } from "react";
 
 interface UniversalDocumentViewerProps {
     /** Full URL or local file path to the document */
@@ -31,22 +29,35 @@ const MIME_MAP: Record<string, string> = {
     webp: "image/webp",
     bmp: "image/bmp",
     tiff: "image/tiff",
-    doc: "application/msword",
-    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    xls: "application/vnd.ms-excel",
-    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    ppt: "application/vnd.ms-powerpoint",
-    pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     txt: "text/plain",
     html: "text/html",
     htm: "text/html",
+    md: "text/markdown",
 };
 
+type DocCategory = "image" | "pdf" | "text" | "unknown";
+
+function getDocCategory(fileName: string, mimeType?: string): DocCategory {
+    const ext = getFileExtension(fileName);
+    const mime = mimeType || MIME_MAP[ext] || "";
+
+    if (mime.startsWith("image/") || ["png", "jpg", "jpeg", "gif", "webp", "bmp", "tiff"].includes(ext)) {
+        return "image";
+    }
+    if (mime === "application/pdf" || ext === "pdf") {
+        return "pdf";
+    }
+    if (mime.startsWith("text/") || ["txt", "md", "html", "htm", "csv"].includes(ext)) {
+        return "text";
+    }
+    return "unknown";
+}
+
 /**
- * UniversalDocumentViewer - Renders various document types using react-doc-viewer
+ * UniversalDocumentViewer - Renders documents using native HTML elements
  * 
- * Supports: PDF, Images, Office documents, and more.
- * Uses authenticated fetch for protected endpoints.
+ * Uses <img> for images, <iframe> for PDFs, and <pre> for text.
+ * No third-party doc viewer library — maximum reliability.
  */
 const UniversalDocumentViewer = memo(function UniversalDocumentViewer({
     fileUrl,
@@ -54,34 +65,30 @@ const UniversalDocumentViewer = memo(function UniversalDocumentViewer({
     fileType,
     title,
 }: UniversalDocumentViewerProps) {
-    // SSR-safe theme detection
     const [isDark, setIsDark] = useState(true);
     const [blobUrl, setBlobUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const blobUrlRef = useRef<string | null>(null);
 
     useEffect(() => {
         const checkDark = () => setIsDark(document.documentElement.classList.contains("dark"));
         checkDark();
-
         const observer = new MutationObserver(checkDark);
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-
         return () => observer.disconnect();
     }, []);
 
     // Fetch document with auth headers and create blob URL
     useEffect(() => {
-        let currentBlobUrl: string | null = null;
+        let cancelled = false;
 
         const fetchDocument = async () => {
             setLoading(true);
             setError(null);
 
             try {
-                // Get auth token
                 const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
-
                 const response = await fetch(fileUrl, {
                     headers: token ? { 'Authorization': `Bearer ${token}` } : {},
                 });
@@ -91,78 +98,47 @@ const UniversalDocumentViewer = memo(function UniversalDocumentViewer({
                 }
 
                 const blob = await response.blob();
-                currentBlobUrl = URL.createObjectURL(blob);
-                setBlobUrl(currentBlobUrl);
+
+                if (cancelled) return; // Don't set state if effect was cleaned up
+
+                // Revoke previous blob URL if any
+                if (blobUrlRef.current) {
+                    URL.revokeObjectURL(blobUrlRef.current);
+                }
+
+                const url = URL.createObjectURL(blob);
+                blobUrlRef.current = url;
+                setBlobUrl(url);
             } catch (err) {
+                if (cancelled) return;
                 console.error('Failed to fetch document:', err);
                 setError(err instanceof Error ? err.message : 'Failed to load document');
             } finally {
-                setLoading(false);
+                if (!cancelled) setLoading(false);
             }
         };
 
         fetchDocument();
 
-        // Cleanup blob URL on unmount or URL change
         return () => {
-            if (currentBlobUrl) {
-                URL.revokeObjectURL(currentBlobUrl);
-            }
+            cancelled = true;
         };
     }, [fileUrl]);
 
-    // Build document array for viewer
-    const docs = useMemo<IDocument[]>(() => {
-        if (!blobUrl) return [];
+    // Cleanup blob URL on unmount only
+    useEffect(() => {
+        return () => {
+            if (blobUrlRef.current) {
+                URL.revokeObjectURL(blobUrlRef.current);
+                blobUrlRef.current = null;
+            }
+        };
+    }, []);
 
-        const ext = getFileExtension(fileName);
-        const mimeType = fileType || MIME_MAP[ext];
+    const category = useMemo(() => getDocCategory(fileName, fileType), [fileName, fileType]);
 
-        return [
-            {
-                uri: blobUrl,
-                fileName: fileName,
-                fileType: mimeType,
-            },
-        ];
-    }, [blobUrl, fileName, fileType]);
-
-    // Theme configuration
-    const theme = useMemo<ITheme>(() => ({
-        primary: "#6366f1",
-        secondary: isDark ? "#18181b" : "#ffffff",
-        tertiary: isDark ? "#27272a" : "#f4f4f5",
-        textPrimary: isDark ? "#f4f4f5" : "#18181b",
-        textSecondary: isDark ? "#a1a1aa" : "#52525b",
-        textTertiary: isDark ? "#71717a" : "#a1a1aa",
-        disableThemeScrollbar: false,
-    }), [isDark]);
-
-    // Config
-    const config = useMemo(
-        () => ({
-            header: {
-                disableHeader: true,
-                disableFileName: true,
-                retainURLParams: false,
-            },
-            csvDelimiter: ",",
-            pdfZoom: {
-                defaultZoom: 1.0,
-                zoomJump: 0.2,
-            },
-            pdfVerticalScrollByDefault: true,
-        }),
-        []
-    );
-
-    // Colors based on theme
+    // Theme colors
     const bgColor = isDark ? "#18181b" : "#f8fafc";
-    const controlBg = isDark ? "rgba(39, 39, 42, 0.95)" : "rgba(255, 255, 255, 0.95)";
-    const controlBorder = isDark ? "rgba(63, 63, 70, 0.5)" : "rgba(228, 228, 231, 0.8)";
-    const buttonBg = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)";
-    const buttonHoverBg = isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)";
-    const textColor = isDark ? "#e4e4e7" : "#3f3f46";
     const mutedText = isDark ? "#a1a1aa" : "#71717a";
 
     return (
@@ -194,8 +170,8 @@ const UniversalDocumentViewer = memo(function UniversalDocumentViewer({
                 </div>
             )}
 
-            {/* Document viewer */}
-            <div className="flex-1 min-h-0 relative">
+            {/* Document content */}
+            <div className="flex-1 min-h-0 relative overflow-auto">
                 {loading ? (
                     <div className="flex h-full items-center justify-center" style={{ color: mutedText }}>
                         <div className="flex flex-col items-center gap-2">
@@ -212,121 +188,105 @@ const UniversalDocumentViewer = memo(function UniversalDocumentViewer({
                             <p className="text-xs">{error}</p>
                         </div>
                     </div>
-                ) : docs.length > 0 ? (
-                    <DocViewer
-                        documents={docs}
-                        pluginRenderers={DocViewerRenderers}
-                        theme={theme}
-                        config={config}
-                        style={{
-                            width: "100%",
-                            height: "100%",
-                            background: bgColor,
-                        }}
-                        className="document-viewer"
+                ) : blobUrl ? (
+                    <DocumentRenderer
+                        blobUrl={blobUrl}
+                        category={category}
+                        fileName={fileName}
+                        isDark={isDark}
+                        bgColor={bgColor}
                     />
                 ) : null}
             </div>
-
-            {/* Custom styles for the default controls */}
-            <style jsx global>{`
-                /* Hide default header */
-                .document-viewer #header-bar {
-                    display: none !important;
-                }
-                
-                /* Style the PDF controls - only appearance, not positioning */
-                .document-viewer #pdf-controls {
-                    display: flex !important;
-                    align-items: center !important;
-                    gap: 4px !important;
-                    padding: 8px 16px !important;
-                    border-radius: 12px !important;
-                    background: ${controlBg} !important;
-                    border: 1px solid ${controlBorder} !important;
-                    backdrop-filter: blur(8px) !important;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-                    margin: 8px auto !important;
-                }
-                
-                /* Style the control buttons */
-                .document-viewer #pdf-controls button {
-                    display: flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    min-width: 32px !important;
-                    height: 32px !important;
-                    padding: 4px 8px !important;
-                    border: none !important;
-                    border-radius: 8px !important;
-                    background: ${buttonBg} !important;
-                    color: ${textColor} !important;
-                    cursor: pointer !important;
-                    transition: all 0.15s ease !important;
-                    font-size: 14px !important;
-                }
-                
-                .document-viewer #pdf-controls button:hover {
-                    background: ${buttonHoverBg} !important;
-                    transform: scale(1.05) !important;
-                }
-                
-                .document-viewer #pdf-controls button:active {
-                    transform: scale(0.95) !important;
-                }
-                
-                .document-viewer #pdf-controls button:disabled {
-                    opacity: 0.4 !important;
-                    cursor: not-allowed !important;
-                    transform: none !important;
-                }
-                
-                /* Style the page indicator text */
-                .document-viewer #pdf-controls span,
-                .document-viewer #pdf-controls input {
-                    font-size: 12px !important;
-                    font-weight: 500 !important;
-                    color: ${mutedText} !important;
-                    background: transparent !important;
-                    border: none !important;
-                    text-align: center !important;
-                    padding: 0 4px !important;
-                }
-                
-                /* PDF renderer background */
-                .document-viewer #proxy-renderer {
-                    overflow: auto !important;
-                    background: ${bgColor} !important;
-                }
-                
-                .document-viewer #pdf-renderer {
-                    background: ${bgColor} !important;
-                }
-                
-                .document-viewer #pdf-page-wrapper {
-                    background: ${bgColor} !important;
-                    padding-bottom: 60px !important;
-                }
-                
-                /* Image renderer */
-                .document-viewer img {
-                    max-width: 100%;
-                    height: auto;
-                    object-fit: contain;
-                    border-radius: 8px;
-                }
-                
-                .document-viewer #image-renderer {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 16px;
-                    background: ${bgColor} !important;
-                }
-            `}</style>
         </div>
     );
 });
+
+/** Renders the actual document content based on type */
+function DocumentRenderer({
+    blobUrl,
+    category,
+    fileName,
+    isDark,
+    bgColor,
+}: {
+    blobUrl: string;
+    category: DocCategory;
+    fileName: string;
+    isDark: boolean;
+    bgColor: string;
+}) {
+    if (category === "image") {
+        return (
+            <div className="flex items-center justify-center h-full p-4" style={{ background: bgColor }}>
+                <img
+                    src={blobUrl}
+                    alt={fileName}
+                    className="max-w-full max-h-full object-contain rounded-lg shadow-sm"
+                    style={{ border: `1px solid ${isDark ? '#27272a' : '#e5e5e5'}` }}
+                />
+            </div>
+        );
+    }
+
+    if (category === "pdf") {
+        return (
+            <iframe
+                src={`${blobUrl}#toolbar=1&navpanes=0`}
+                title={fileName}
+                className="w-full h-full border-0"
+                style={{ background: isDark ? "#1a1a1a" : "#ffffff" }}
+            />
+        );
+    }
+
+    if (category === "text") {
+        return <TextRenderer blobUrl={blobUrl} isDark={isDark} />;
+    }
+
+    // Unknown file type - offer download
+    return (
+        <div className="flex h-full items-center justify-center">
+            <div className="flex flex-col items-center gap-3 text-center px-4">
+                <svg className="w-12 h-12 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p className="text-sm text-zinc-400">{fileName}</p>
+                <a
+                    href={blobUrl}
+                    download={fileName}
+                    className="px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 transition-colors"
+                >
+                    Download File
+                </a>
+            </div>
+        </div>
+    );
+}
+
+/** Text file renderer that fetches and displays text content */
+function TextRenderer({ blobUrl, isDark }: { blobUrl: string; isDark: boolean }) {
+    const [text, setText] = useState<string>("Loading...");
+
+    useEffect(() => {
+        fetch(blobUrl)
+            .then(r => r.text())
+            .then(setText)
+            .catch(() => setText("Failed to load text content"));
+    }, [blobUrl]);
+
+    return (
+        <pre
+            className="p-4 text-sm font-mono whitespace-pre-wrap overflow-auto h-full"
+            style={{
+                color: isDark ? "#e4e4e7" : "#3f3f46",
+                background: isDark ? "#18181b" : "#f8fafc",
+            }}
+        >
+            {text}
+        </pre>
+    );
+}
 
 export default UniversalDocumentViewer;
 export { UniversalDocumentViewer };

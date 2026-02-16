@@ -42,6 +42,8 @@ export interface DocumentDetails {
     id: string;
     content: string;
     metadata: DocumentMetadata;
+    extracted_fields?: Record<string, any>;
+    markdown_content?: string;
 }
 
 export interface ChainSummary {

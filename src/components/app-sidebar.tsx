@@ -89,6 +89,13 @@ const documentItems = [
     requiredPermission: PAGE_PERMISSIONS.DATA_LIBRARY,
   },
   {
+    name: "Zete Library",
+    url: "/zete-library",
+    icon: IconFolder,
+    tooltip: "Browse Zete documents",
+    requiredPermission: PAGE_PERMISSIONS.DATA_LIBRARY,
+  },
+  {
     name: "Schema Library",
     url: "/extraction-schemas",
     icon: IconDatabase,

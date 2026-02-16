@@ -9,6 +9,8 @@ import dynamic from "next/dynamic";
 import { DocumentDetails } from "../../types/zete-types";
 import { zeteApi } from "../../lib/zete-api";
 import { Badge } from "../ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { FileText, Database, Code2 } from "lucide-react";
 
 // Dynamically import document viewer to avoid SSR issues
 const UniversalDocumentViewer = dynamic(
@@ -189,7 +191,11 @@ export function DocumentPanel({ document, onDelete }: DocumentPanelProps) {
     useEffect(() => {
         setSummaries(null);
         setReconciliation(null);
+        console.log('[DEBUG DocumentPanel] document changed:', document?.id, 'content length:', document?.content?.length, 'isBinary:', document ? isBinaryFile(document.content) : 'N/A', 'content preview:', document?.content?.substring(0, 100));
     }, [document?.id]);
+
+    // Debug: log every render
+    console.log('[DEBUG DocumentPanel RENDER] id:', document?.id, 'isBinary:', document ? isBinaryFile(document.content) : 'N/A', 'content length:', document?.content?.length);
 
     const parsedContent = document ? parseContent(document.content) : { cleaned: "", links: [] };
 
@@ -472,21 +478,89 @@ export function DocumentPanel({ document, onDelete }: DocumentPanelProps) {
                 </AnimatePresence>
             </div>
 
-            {/* Scrollable Content Section */}
-            {isBinaryFile(document.content) ? (
-                <div className="flex-1 min-h-0">
-                    <UniversalDocumentViewer
-                        fileUrl={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/zete/documents/${document.id}/raw`}
-                        fileName={document.metadata?.file_path || `${document.id}.unknown`}
-                        title={document.metadata?.title || document.id}
-                    />
+            {/* Tabbed Content Section */}
+            <Tabs defaultValue="file" className="flex flex-col flex-1 min-h-0">
+                <div className="flex-none px-6 pt-2 border-b border-gray-100 dark:border-zinc-800">
+                    <TabsList className="w-fit">
+                        <TabsTrigger value="file" className="gap-1.5 text-xs">
+                            <FileText className="h-3.5 w-3.5" />
+                            File
+                        </TabsTrigger>
+                        <TabsTrigger value="metadata" className="gap-1.5 text-xs">
+                            <Database className="h-3.5 w-3.5" />
+                            Metadata
+                        </TabsTrigger>
+                        <TabsTrigger value="extracted" className="gap-1.5 text-xs">
+                            <Code2 className="h-3.5 w-3.5" />
+                            Extracted Data
+                        </TabsTrigger>
+                    </TabsList>
                 </div>
-            ) : (
-                <DocumentContentRenderer
-                    content={parsedContent.cleaned}
-                    docId={document.id}
-                />
-            )}
+
+                {/* File Tab */}
+                <TabsContent value="file" className="flex-1 min-h-0 m-0">
+                    {isBinaryFile(document.content) ? (
+                        <div className="h-full">
+                            <UniversalDocumentViewer
+                                fileUrl={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/zete/documents/${document.id}/raw`}
+                                fileName={document.metadata?.file_path || `${document.id}.unknown`}
+                                title={document.metadata?.title || document.id}
+                            />
+                        </div>
+                    ) : (
+                        <DocumentContentRenderer
+                            content={parsedContent.cleaned}
+                            docId={document.id}
+                        />
+                    )}
+                </TabsContent>
+
+                {/* Metadata Tab */}
+                <TabsContent value="metadata" className="flex-1 overflow-auto m-0 p-0">
+                    {document.extracted_fields && Object.keys(document.extracted_fields).length > 0 ? (
+                        <div className="p-4 space-y-1">
+                            {Object.entries(document.extracted_fields).map(([key, value], index) => (
+                                <motion.div
+                                    key={key}
+                                    initial={{ opacity: 0, x: 10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: index * 0.03 }}
+                                    className="flex items-start gap-3 py-2.5 px-3 rounded-md hover:bg-muted/50 transition-colors"
+                                >
+                                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider min-w-[140px] pt-0.5">
+                                        {key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                                    </span>
+                                    <span className="text-sm text-foreground flex-1 break-words">
+                                        {value === null || value === undefined ? '—' : typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
+                                    </span>
+                                </motion.div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-2 py-12">
+                            <Database className="h-8 w-8 opacity-40" />
+                            <p>No metadata available</p>
+                        </div>
+                    )}
+                </TabsContent>
+
+                {/* Extracted Data Tab */}
+                <TabsContent value="extracted" className="flex-1 overflow-auto m-0 p-0">
+                    {document.markdown_content ? (
+                        <div className="p-6 prose prose-sm dark:prose-invert max-w-none">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {document.markdown_content}
+                            </ReactMarkdown>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-2 py-12">
+                            <Code2 className="h-8 w-8 opacity-40" />
+                            <p>No extracted data available</p>
+                            <p className="text-xs">Re-ingest this document to generate markdown extraction</p>
+                        </div>
+                    )}
+                </TabsContent>
+            </Tabs>
         </motion.div>
     );
 }
