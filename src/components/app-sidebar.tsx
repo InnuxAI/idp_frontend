@@ -82,14 +82,14 @@ const navMainItems = [
 
 const documentItems = [
   {
-    name: "Data Library",
+    name: "Legacy Library",
     url: "/data-library",
     icon: IconDatabase,
     tooltip: "Manage uploaded documents",
     requiredPermission: PAGE_PERMISSIONS.DATA_LIBRARY,
   },
   {
-    name: "Zete Library",
+    name: "Data Library",
     url: "/zete-library",
     icon: IconFolder,
     tooltip: "Browse Zete documents",
