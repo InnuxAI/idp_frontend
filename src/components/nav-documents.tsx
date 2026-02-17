@@ -77,7 +77,7 @@ export function NavDocuments({
                 </motion.span>
               ) : (
                 <motion.a
-                  href={item.name === 'Data Library' ? '/data-library' : item.url}
+                  href={item.url}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: (startIndex + index) * 0.05 }}
