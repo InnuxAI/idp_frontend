@@ -29,6 +29,7 @@ export type PagePermission = (typeof PAGE_PERMISSIONS)[keyof typeof PAGE_PERMISS
 export const ROUTE_PERMISSION_MAP: Record<string, PagePermission> = {
     "/dashboard": PAGE_PERMISSIONS.DASHBOARD,
     "/zete": PAGE_PERMISSIONS.KNOWLEDGE_GRAPH,
+    "/agro-chat": PAGE_PERMISSIONS.KNOWLEDGE_GRAPH,
     "/field-extraction": PAGE_PERMISSIONS.FIELD_EXTRACTION,
     "/2_way_match": PAGE_PERMISSIONS.ANALYTICS,
     "/projects": PAGE_PERMISSIONS.PROJECTS,

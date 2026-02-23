@@ -3,23 +3,24 @@
 import * as React from "react"
 import { motion } from "motion/react"
 import {
-  IconCamera,
+  // IconCamera,
   IconChartBar,
   IconDashboard,
   IconDatabase,
   IconFileAi,
-  IconFileDescription,
+  // IconFileDescription,
   IconFileInvoice,
-  IconFileWord,
-  IconFolder,
+  // IconFileWord,
+  // IconFolder,
   IconHelp,
   IconSchema,
-  IconListDetails,
-  IconReport,
+  IconLeaf,
+  // IconListDetails,
+  // IconReport,
   IconSearch,
   IconSettings,
   IconShield,
-  IconUsers,
+  // IconUsers,
   IconUserCog,
   IconMessageChatbot,
 } from "@tabler/icons-react"
@@ -58,11 +59,18 @@ const navMainItems = [
     tooltip: "Visualize relationships",
     requiredPermission: PAGE_PERMISSIONS.KNOWLEDGE_GRAPH,
   },
+  // {
+  //   title: "RAG Chat",
+  //   url: "/rag-chat",
+  //   icon: IconMessageChatbot,
+  //   tooltip: "Chat with your documents using AI",
+  //   requiredPermission: PAGE_PERMISSIONS.KNOWLEDGE_GRAPH,
+  // },
   {
-    title: "RAG Chat",
-    url: "/rag-chat",
+    title: "Agro Chat",
+    url: "/agro-chat",
     icon: IconMessageChatbot,
-    tooltip: "Chat with your documents using AI",
+    tooltip: "Chat with agricultural documents using AI",
     requiredPermission: PAGE_PERMISSIONS.KNOWLEDGE_GRAPH,
   },
   {
@@ -89,26 +97,33 @@ const navMainItems = [
 ]
 
 const documentItems = [
-  {
-    name: "Legacy Library",
-    url: "/data-library",
-    icon: IconDatabase,
-    tooltip: "Manage uploaded documents",
-    requiredPermission: PAGE_PERMISSIONS.DATA_LIBRARY,
-  },
-  {
-    name: "Data Library",
-    url: "/zete-library",
-    icon: IconFolder,
-    tooltip: "Browse Zete documents",
-    requiredPermission: PAGE_PERMISSIONS.DATA_LIBRARY,
-  },
+  // {
+  //   name: "Legacy Library",
+  //   url: "/data-library",
+  //   icon: IconDatabase,
+  //   tooltip: "Manage uploaded documents",
+  //   requiredPermission: PAGE_PERMISSIONS.DATA_LIBRARY,
+  // },
+  // {
+  //   name: "Data Library",
+  //   url: "/zete-library",
+  //   icon: IconFolder,
+  //   tooltip: "Browse Zete documents",
+  //   requiredPermission: PAGE_PERMISSIONS.DATA_LIBRARY,
+  // },
   {
     name: "Schema Library",
     url: "/extraction-schemas",
     icon: IconDatabase,
     tooltip: "Manage extraction schemas",
     requiredPermission: PAGE_PERMISSIONS.SCHEMA_LIBRARY,
+  },
+  {
+    name: "Agro Library",
+    url: "/agro-library",
+    icon: IconLeaf,
+    tooltip: "Browse Agro Chat documents",
+    requiredPermission: PAGE_PERMISSIONS.DATA_LIBRARY,
   },
 ]
 
