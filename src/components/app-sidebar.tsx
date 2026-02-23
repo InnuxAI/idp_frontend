@@ -21,6 +21,7 @@ import {
   IconShield,
   IconUsers,
   IconUserCog,
+  IconMessageChatbot,
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -55,6 +56,13 @@ const navMainItems = [
     url: "/zete",
     icon: IconSchema,
     tooltip: "Visualize relationships",
+    requiredPermission: PAGE_PERMISSIONS.KNOWLEDGE_GRAPH,
+  },
+  {
+    title: "RAG Chat",
+    url: "/rag-chat",
+    icon: IconMessageChatbot,
+    tooltip: "Chat with your documents using AI",
     requiredPermission: PAGE_PERMISSIONS.KNOWLEDGE_GRAPH,
   },
   {
