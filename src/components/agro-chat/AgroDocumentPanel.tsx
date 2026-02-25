@@ -15,6 +15,8 @@ type TabId = "summary" | "content" | "pdf";
 
 interface AgroDocumentPanelProps {
     document: AgroDocument | null;
+    initialPage?: number;   // jump to this page in the PDF tab
+    initialTab?: TabId;     // open this tab immediately
     onDelete?: () => void;
 }
 
@@ -24,11 +26,12 @@ const TAB_CONFIG: { id: TabId; label: string; icon: typeof IconSparkles }[] = [
     { id: "pdf", label: "PDF", icon: IconFile },
 ];
 
-export function AgroDocumentPanel({ document, onDelete }: AgroDocumentPanelProps) {
-    const [activeTab, setActiveTab] = useState<TabId>("summary");
+export function AgroDocumentPanel({ document, initialPage, initialTab, onDelete }: AgroDocumentPanelProps) {
+    const [activeTab, setActiveTab] = useState<TabId>(initialTab ?? "summary");
     const [markdown, setMarkdown] = useState<string | null>(null);
     const [mdLoading, setMdLoading] = useState(false);
     const [mdError, setMdError] = useState<string | null>(null);
+    const [targetPage, setTargetPage] = useState<number | undefined>(initialPage);
 
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     const pdfUrl = document?.source
@@ -57,6 +60,16 @@ export function AgroDocumentPanel({ document, onDelete }: AgroDocumentPanelProps
         setMarkdown(null);
         setMdError(null);
     }, [document?.id, document?.source]);
+
+    // When initialPage or initialTab changes from outside (source badge click)
+    useEffect(() => {
+        if (initialPage != null) {
+            setTargetPage(initialPage);
+            setActiveTab("pdf");
+        } else if (initialTab) {
+            setActiveTab(initialTab);
+        }
+    }, [initialPage, initialTab]);
 
     // Extract metadata for display
     const metadata = document?.metadata || {};
@@ -301,7 +314,8 @@ export function AgroDocumentPanel({ document, onDelete }: AgroDocumentPanelProps
                                 >
                                     {pdfUrl ? (
                                         <iframe
-                                            src={pdfUrl}
+                                            key={`${pdfUrl}#page=${targetPage ?? 1}`}
+                                            src={`${pdfUrl}${targetPage ? `#page=${targetPage}` : ''}`}
                                             title={document.title}
                                             className="w-full h-full border-0"
                                             style={{ minHeight: "calc(100vh - 180px)" }}

@@ -2,9 +2,9 @@
 
 import { IconCirclePlusFilled, IconMail, IconMessageCircle, IconUpload, type Icon } from "@tabler/icons-react"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 
-import { Button } from "@/components/ui/button"
+// import { Button } from "@/components/ui/button"
 import { motion } from "motion/react"
 import {
   SidebarGroup,
@@ -31,12 +31,13 @@ export function NavMain({
   onLinkClick?: () => void
 }) {
   const router = useRouter()
+  const pathname = usePathname()
   const { setUploadModalOpen } = useDocumentContext()
 
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
-        <SidebarMenu>
+        {/* <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-2">
             <SidebarMenuButton
               tooltip="Quick Create"
@@ -57,7 +58,7 @@ export function NavMain({
               </motion.button>
             </SidebarMenuButton>
           </SidebarMenuItem>
-        </SidebarMenu>
+        </SidebarMenu> */}
         <SidebarMenu>
           {items.map((item, index) => (
             <SidebarMenuItem key={item.title}>
@@ -79,7 +80,11 @@ export function NavMain({
                   </motion.div>
                 </SidebarMenuButton>
               ) : (
-                <SidebarMenuButton tooltip={item.tooltip || item.title} asChild>
+                <SidebarMenuButton
+                  tooltip={item.tooltip || item.title}
+                  asChild
+                  className={pathname === item.url ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground' : ''}
+                >
                   <motion.a
                     href={item.url}
                     initial={{ opacity: 0, x: -20 }}
@@ -94,7 +99,7 @@ export function NavMain({
               )}
             </SidebarMenuItem>
           ))}
-          <SidebarMenuItem>
+          {/* <SidebarMenuItem>
             <SidebarMenuButton
               tooltip="Chat with Documents"
               asChild
@@ -110,7 +115,7 @@ export function NavMain({
                 <span>Chat</span>
               </motion.a>
             </SidebarMenuButton>
-          </SidebarMenuItem>
+          </SidebarMenuItem> */}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

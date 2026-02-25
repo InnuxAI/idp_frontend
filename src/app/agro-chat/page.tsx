@@ -58,8 +58,10 @@ function AgroChatPageContent() {
     const [showChat, setShowChat] = useState(true);
     const [showDocument, setShowDocument] = useState(true);
 
-    // Selected document (from search or click)
+    // Selected document + page to jump to
     const [selectedDocument, setSelectedDocument] = useState<AgroDocument | null>(null);
+    const [initialPage, setInitialPage] = useState<number | undefined>(undefined);
+    const [initialTab, setInitialTab] = useState<"summary" | "content" | "pdf" | undefined>(undefined);
 
     // Upload modal
     const [showUploadModal, setShowUploadModal] = useState(false);
@@ -74,7 +76,7 @@ function AgroChatPageContent() {
     }, []);
 
     /** Convert a source badge click into a document panel entry */
-    const handleSourceClick = useCallback((source: AgroSourceDoc) => {
+    const handleSourceClick = useCallback((source: AgroSourceDoc, pageNumber?: number) => {
         const filename = source.sourceStem || source.source?.replace(/^.*[\\/]/, '') || "Unknown Document";
         setSelectedDocument({
             id: source.supabaseId || source.source || Date.now().toString(),
@@ -89,6 +91,14 @@ function AgroChatPageContent() {
                 ...(source.tier ? { tier: source.tier } : {}),
             },
         });
+        // If a page number was provided (from a reasoning panel badge), jump to PDF tab at that page
+        if (pageNumber != null) {
+            setInitialPage(pageNumber);
+            setInitialTab("pdf");
+        } else {
+            setInitialPage(undefined);
+            setInitialTab("summary");
+        }
         setShowDocument(true);
     }, []);
 
@@ -222,6 +232,8 @@ function AgroChatPageContent() {
                             >
                                 <AgroDocumentPanel
                                     document={selectedDocument}
+                                    initialPage={initialPage}
+                                    initialTab={initialTab}
                                     onDelete={handleDocumentDeleted}
                                 />
                             </motion.div>

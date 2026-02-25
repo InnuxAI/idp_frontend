@@ -4,20 +4,20 @@ import * as React from "react"
 import { motion } from "motion/react"
 import {
   // IconCamera,
-  IconChartBar,
+  // IconChartBar,
   IconDashboard,
   IconDatabase,
   IconFileAi,
   // IconFileDescription,
-  IconFileInvoice,
+  // IconFileInvoice,
   // IconFileWord,
   // IconFolder,
-  IconHelp,
+  // IconHelp,
   IconSchema,
   IconLeaf,
   // IconListDetails,
   // IconReport,
-  IconSearch,
+  // IconSearch,
   IconSettings,
   IconShield,
   // IconUsers,
@@ -80,20 +80,20 @@ const navMainItems = [
     tooltip: "Extract data from documents",
     requiredPermission: PAGE_PERMISSIONS.FIELD_EXTRACTION,
   },
-  {
-    title: "Analytics",
-    url: "/2_way_match",
-    icon: IconChartBar,
-    tooltip: "Two Way matching",
-    requiredPermission: PAGE_PERMISSIONS.ANALYTICS,
-  },
-  {
-    title: "Invoice Approval",
-    url: "/hitl",
-    icon: IconFileInvoice,
-    tooltip: "AI-powered invoice approval",
-    requiredPermission: PAGE_PERMISSIONS.HITL,
-  }
+  // {
+  //   title: "Analytics",
+  //   url: "/2_way_match",
+  //   icon: IconChartBar,
+  //   tooltip: "Two Way matching",
+  //   requiredPermission: PAGE_PERMISSIONS.ANALYTICS,
+  // },
+  // {
+  //   title: "Invoice Approval",
+  //   url: "/hitl",
+  //   icon: IconFileInvoice,
+  //   tooltip: "AI-powered invoice approval",
+  //   requiredPermission: PAGE_PERMISSIONS.HITL,
+  // }
 ]
 
 const documentItems = [
@@ -151,16 +151,16 @@ const navSecondaryItems = [
     icon: IconSettings,
     requiredPermission: PAGE_PERMISSIONS.SETTINGS,
   },
-  {
-    title: "Get Help",
-    url: "#",
-    icon: IconHelp,
-  },
-  {
-    title: "Search",
-    url: "#",
-    icon: IconSearch,
-  },
+  // {
+  //   title: "Get Help",
+  //   url: "#",
+  //   icon: IconHelp,
+  // },
+  // {
+  //   title: "Search",
+  //   url: "#",
+  //   icon: IconSearch,
+  // },
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

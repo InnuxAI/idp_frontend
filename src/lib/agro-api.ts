@@ -104,6 +104,7 @@ export const agroApi = {
         onDone: (data?: Record<string, unknown>) => void,
         onError?: (error: Error) => void,
         onRetrieval?: (data: Record<string, unknown>) => void,
+        docTypes?: string[],
     ): Promise<void> => {
         const token =
             typeof window !== 'undefined'
@@ -115,6 +116,12 @@ export const agroApi = {
             query,
             top_k: '10',
         });
+
+        // Only send doc_types when filtering a subset (< all 3),
+        // omitting it entirely = no filter on the backend.
+        if (docTypes && docTypes.length > 0) {
+            params.set('doc_types', docTypes.join(','));
+        }
 
         let response: globalThis.Response;
         try {
