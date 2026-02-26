@@ -33,7 +33,7 @@ export function LoginForm() {
       await login(data.email, data.password, data.remember_me)
       // Small delay to ensure auth state is updated
       setTimeout(() => {
-        router.push("/dashboard")
+        router.push("/agro-dashboard")
       }, 100)
     } catch (error) {
       // Error is handled by context (toast shown)

@@ -136,9 +136,9 @@ const ALL_TABS = [
     { id: "overview", label: "Overview", icon: IconChartBar, adminOnly: false },
     { id: "queries", label: "Query Analytics", icon: IconMessageQuestion, adminOnly: false },
     { id: "trends", label: "Trends", icon: IconTrendingUp, adminOnly: false },
-    { id: "failed", label: "Failed Prompts", icon: IconAlertTriangle, adminOnly: true },
-    { id: "documents", label: "Documents", icon: IconFiles, adminOnly: true },
-    { id: "hitl", label: "HITL Queue", icon: IconBrain, adminOnly: true },
+    { id: "failed", label: "Failed Prompts", icon: IconAlertTriangle, adminOnly: false },
+    { id: "documents", label: "Documents", icon: IconFiles, adminOnly: false },
+    { id: "hitl", label: "HITL Queue", icon: IconBrain, adminOnly: false },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -316,9 +316,11 @@ function AgroDashboardContent() {
     const [trends, setTrends] = useState<TrendDay[]>([]);
     const [docs, setDocs] = useState<Record<string, unknown> | null>(null);
     const [period, setPeriod] = useState(60);
+    const [error, setError] = useState<string | null>(null);
 
     const loadAll = useCallback(async () => {
         setLoading(true);
+        setError(null);
         try {
             const [ov, q, f, tr, d] = await Promise.all([
                 agroApi.fetchDashboardOverview(period),
@@ -332,6 +334,9 @@ function AgroDashboardContent() {
             setFailed(f);
             setTrends(((tr as Record<string, unknown>).series as TrendDay[]) ?? []);
             setDocs(d);
+        } catch (err: any) {
+            console.error("Failed to load agro dashboard:", err);
+            setError(err.message || "Failed to load dashboard data. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -420,6 +425,20 @@ function AgroDashboardContent() {
                         <div className="flex flex-col items-center justify-center h-64 text-gray-400 dark:text-zinc-600 gap-3">
                             <IconHourglassHigh size={32} className="animate-spin text-emerald-500 opacity-80" />
                             <span className="text-sm">Loading analytics…</span>
+                        </div>
+                    ) : error ? (
+                        <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-black">
+                            <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 max-w-md w-full">
+                                <IconAlertTriangle size={48} className="mx-auto text-red-500 mb-4 opacity-80" />
+                                <h3 className="text-lg font-semibold text-white mb-2">Failed to load Dashboard</h3>
+                                <p className="text-sm text-red-400 mb-6">{error}</p>
+                                <button
+                                    onClick={loadAll}
+                                    className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm font-medium transition-colors"
+                                >
+                                    Try Again
+                                </button>
+                            </div>
                         </div>
                     ) : (
                         <AnimatePresence mode="wait">

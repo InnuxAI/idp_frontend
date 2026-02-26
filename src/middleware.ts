@@ -18,7 +18,7 @@ const authRoutes = [
   '/login',
   '/signup',
   '/signup/form',
-  '/signup/otp', 
+  '/signup/otp',
   '/verify-otp',
   '/forgot-password',
   '/reset-password'
@@ -31,25 +31,25 @@ const publicRoutes = [
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  
+
   // Get token from cookies or headers
   const token = request.cookies.get('auth_token')?.value ||
-               request.headers.get('authorization')?.replace('Bearer ', '')
+    request.headers.get('authorization')?.replace('Bearer ', '')
 
   const isAuthenticated = !!token
 
   // Check if the route is protected
-  const isProtectedRoute = protectedRoutes.some(route => 
+  const isProtectedRoute = protectedRoutes.some(route =>
     pathname === route || pathname.startsWith(route + '/')
   )
-  
+
   // Check if the route is an auth route
-  const isAuthRoute = authRoutes.some(route => 
+  const isAuthRoute = authRoutes.some(route =>
     pathname === route || pathname.startsWith(route)
   )
 
   // Check if the route is public
-  const isPublicRoute = publicRoutes.some(route => 
+  const isPublicRoute = publicRoutes.some(route =>
     pathname === route || pathname.startsWith(route + '/')
   )
 
@@ -60,15 +60,14 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Handle auth routes - redirect authenticated users away
   if (isAuthRoute && isAuthenticated) {
-    const returnUrl = request.nextUrl.searchParams.get('returnUrl') || '/dashboard'
+    const returnUrl = request.nextUrl.searchParams.get('returnUrl') || '/agro-dashboard'
     return NextResponse.redirect(new URL(returnUrl, request.url))
   }
 
   // Handle root route redirect
   if (pathname === '/' && isAuthenticated) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    return NextResponse.redirect(new URL('/agro-dashboard', request.url))
   }
 
   // Allow access to public routes and other routes

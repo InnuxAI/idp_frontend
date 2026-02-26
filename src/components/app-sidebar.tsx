@@ -71,14 +71,14 @@ const navMainItems = [
     url: "/agro-chat",
     icon: IconMessageChatbot,
     tooltip: "Chat with agricultural documents using AI",
-    requiredPermission: PAGE_PERMISSIONS.KNOWLEDGE_GRAPH,
+    requiredPermission: PAGE_PERMISSIONS.AGRO_CHAT,
   },
   {
     title: "Agro Dashboard",
     url: "/agro-dashboard",
     icon: IconChartBar,
     tooltip: "RAG analytics, HITL queue and document health",
-    requiredPermission: PAGE_PERMISSIONS.DASHBOARD,
+    requiredPermission: PAGE_PERMISSIONS.AGRO_DASHBOARD,
   },
   {
     title: "Field Extraction",
@@ -130,7 +130,7 @@ const documentItems = [
     url: "/agro-library",
     icon: IconLeaf,
     tooltip: "Browse Agro Chat documents",
-    requiredPermission: PAGE_PERMISSIONS.DATA_LIBRARY,
+    requiredPermission: PAGE_PERMISSIONS.AGRO_LIBRARY,
   },
 ]
 

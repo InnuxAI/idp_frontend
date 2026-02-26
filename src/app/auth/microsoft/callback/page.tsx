@@ -69,7 +69,7 @@ function MicrosoftCallbackContent() {
                         // Full page redirect to dashboard (not client-side nav)
                         // This ensures AuthProvider re-initializes with the new credentials
                         setTimeout(() => {
-                            window.location.href = '/dashboard'
+                            window.location.href = '/agro-dashboard'
                         }, 1000)
                     } else {
                         throw new Error('Unexpected response from server')
@@ -115,7 +115,7 @@ function MicrosoftCallbackContent() {
                             {errorMessage ? 'Account Created!' : 'Success!'}
                         </h2>
                         <p className="text-zinc-400">
-                            {errorMessage || 'Redirecting to dashboard...'}
+                            {errorMessage || 'Redirecting to agro dashboard...'}
                         </p>
                         {errorMessage && (
                             <p className="text-sm text-zinc-500">You will be notified once approved</p>
