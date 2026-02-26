@@ -41,10 +41,12 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+
 import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/components/ui/sidebar"
+    SidebarInset,
+    SidebarProvider,
+  } from "@/components/ui/sidebar"
+import { roleAPI, Role } from "@/lib/role-api"
 
 interface User {
   id: string
@@ -62,12 +64,44 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export default function AdminPanel() {
   const [users, setUsers] = useState<User[]>([])
+  const [roles, setRoles] = useState<Role[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('')
 
   useEffect(() => {
-    fetchUsers()
+    fetchData()
   }, [])
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      // Fetch both users and available roles in parallel
+      const [usersResponse, rolesData] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/v1/auth/admin/users`, {
+          headers: {
+            'Authorization': `Bearer ${sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token')}`,
+            'Content-Type': 'application/json',
+          },
+        }),
+        roleAPI.listRoles().catch(() => []) // fallback iter if role fetch fails
+      ])
+
+      // Parse user response
+      if (usersResponse.ok) {
+        const data = await usersResponse.json()
+        setUsers(data.data || [])
+      } else {
+        toast.error('Failed to fetch users')
+      }
+
+      setRoles(rolesData)
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      toast.error('Failed to fetch data')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const fetchUsers = async () => {
     try {
@@ -375,9 +409,13 @@ export default function AdminPanel() {
                                           <SelectValue placeholder={user.role || "No role"} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                          <SelectItem value="admin">Admin</SelectItem>
-                                          <SelectItem value="user">User</SelectItem>
-                                          <SelectItem value="viewer">Viewer</SelectItem>
+                                          <SelectItem value="admin">Admin (System)</SelectItem>
+                                          <SelectItem value="user">User (System)</SelectItem>
+                                          {roles.map(r => (
+                                            r.name !== "admin" && r.name !== "user" && (
+                                              <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
+                                            )
+                                          ))}
                                         </SelectContent>
                                       </Select>
                                     </div>
