@@ -4,7 +4,7 @@ import * as React from "react"
 import { motion } from "motion/react"
 import {
   // IconCamera,
-  // IconChartBar,
+  IconChartBar,
   IconDashboard,
   IconDatabase,
   IconFileAi,
@@ -72,6 +72,13 @@ const navMainItems = [
     icon: IconMessageChatbot,
     tooltip: "Chat with agricultural documents using AI",
     requiredPermission: PAGE_PERMISSIONS.KNOWLEDGE_GRAPH,
+  },
+  {
+    title: "Agro Dashboard",
+    url: "/agro-dashboard",
+    icon: IconChartBar,
+    tooltip: "RAG analytics, HITL queue and document health",
+    requiredPermission: PAGE_PERMISSIONS.DASHBOARD,
   },
   {
     title: "Field Extraction",

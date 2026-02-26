@@ -61,7 +61,7 @@ function AgroChatPageContent() {
     // Selected document + page to jump to
     const [selectedDocument, setSelectedDocument] = useState<AgroDocument | null>(null);
     const [initialPage, setInitialPage] = useState<number | undefined>(undefined);
-    const [initialTab, setInitialTab] = useState<"summary" | "content" | "pdf" | undefined>(undefined);
+    const [initialTab, setInitialTab] = useState<"summary" | "confidence" | "content" | "pdf" | undefined>(undefined);
 
     // Upload modal
     const [showUploadModal, setShowUploadModal] = useState(false);
@@ -76,7 +76,7 @@ function AgroChatPageContent() {
     }, []);
 
     /** Convert a source badge click into a document panel entry */
-    const handleSourceClick = useCallback((source: AgroSourceDoc, pageNumber?: number) => {
+    const handleSourceClick = useCallback((source: AgroSourceDoc, pageNumber?: number, msgContext?: { faithfulness?: any; reasoning?: string }) => {
         const filename = source.sourceStem || source.source?.replace(/^.*[\\/]/, '') || "Unknown Document";
         setSelectedDocument({
             id: source.supabaseId || source.source || Date.now().toString(),
@@ -89,15 +89,17 @@ function AgroChatPageContent() {
                 ...(source.metadata ?? {}),
                 ...(source.confidencePct ? { confidence: source.confidencePct } : source.score != null ? { confidence: `${(source.score * 100).toFixed(1)}%` } : {}),
                 ...(source.tier ? { tier: source.tier } : {}),
+                ...(msgContext?.faithfulness ? { faithfulness: msgContext.faithfulness } : {}),
+                ...(msgContext?.reasoning ? { reasoning: msgContext.reasoning } : {}),
             },
         });
         // If a page number was provided (from a reasoning panel badge), jump to PDF tab at that page
         if (pageNumber != null) {
             setInitialPage(pageNumber);
-            setInitialTab("pdf");
+            setInitialTab("confidence");
         } else {
             setInitialPage(undefined);
-            setInitialTab("summary");
+            setInitialTab("confidence");
         }
         setShowDocument(true);
     }, []);

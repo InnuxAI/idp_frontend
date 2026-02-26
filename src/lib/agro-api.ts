@@ -405,4 +405,125 @@ export const agroApi = {
         const response = await axios.get(`${AGRO_BASE}/api/health`);
         return response.data;
     },
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // PHASE 2 — Dashboard + HITL + Feedback + Thumbnail
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /** Dashboard KPI overview */
+    fetchDashboardOverview: async (periodDays = 60, role = 'admin'): Promise<Record<string, unknown>> => {
+        const response = await axios.get(`${AGRO_BASE}/api/dashboard/overview`, {
+            params: { period_days: periodDays, role },
+            headers: getAuthHeaders(),
+        });
+        return response.data;
+    },
+
+    /** Top queries + top accessed documents */
+    fetchDashboardQueries: async (periodDays = 60, limit = 5): Promise<Record<string, unknown>> => {
+        const response = await axios.get(`${AGRO_BASE}/api/dashboard/queries`, {
+            params: { period_days: periodDays, limit },
+            headers: getAuthHeaders(),
+        });
+        return response.data;
+    },
+
+    /** Ranked failed prompts */
+    fetchDashboardFailed: async (periodDays = 60, threshold = 0.4): Promise<Record<string, unknown>> => {
+        const response = await axios.get(`${AGRO_BASE}/api/dashboard/failed`, {
+            params: { period_days: periodDays, threshold },
+            headers: getAuthHeaders(),
+        });
+        return response.data;
+    },
+
+    /** Daily trend series */
+    fetchDashboardTrends: async (periodDays = 60): Promise<Record<string, unknown>> => {
+        const response = await axios.get(`${AGRO_BASE}/api/dashboard/trends`, {
+            params: { period_days: periodDays },
+            headers: getAuthHeaders(),
+        });
+        return response.data;
+    },
+
+    /** Paginated document registry */
+    fetchDashboardDocuments: async (params?: {
+        doc_type?: string;
+        page?: number;
+        page_size?: number;
+        sort_by?: string;
+        sort_asc?: boolean;
+    }): Promise<Record<string, unknown>> => {
+        const response = await axios.get(`${AGRO_BASE}/api/dashboard/documents`, {
+            params: params ?? {},
+            headers: getAuthHeaders(),
+        });
+        return response.data;
+    },
+
+    /** List HITL review queue */
+    fetchHITLItems: async (status?: string, limit = 50, offset = 0): Promise<Record<string, unknown>> => {
+        const response = await axios.get(`${AGRO_BASE}/api/hitl/items`, {
+            params: { status, limit, offset },
+            headers: getAuthHeaders(),
+        });
+        return response.data;
+    },
+
+    /** Submit escalation (thumbs-down → queue) */
+    escalateQuery: async (payload: {
+        query: string;
+        answer_given?: string;
+        session_id?: string;
+        confidence_score?: number;
+        best_match_doc?: string;
+        comment?: string;
+        gap_type?: string;
+    }): Promise<Record<string, unknown>> => {
+        const response = await axios.post(`${AGRO_BASE}/api/hitl/escalate`, payload, {
+            headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        });
+        return response.data;
+    },
+
+    /** Admin: update HITL item status / assignee */
+    updateHITLItem: async (
+        itemId: string,
+        updates: { status?: string; assignee?: string; resolution_note?: string }
+    ): Promise<Record<string, unknown>> => {
+        const response = await axios.patch(`${AGRO_BASE}/api/hitl/${itemId}`, updates, {
+            headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        });
+        return response.data;
+    },
+
+    /** Admin: resolve a HITL item with optional re-ingest */
+    resolveHITLItem: async (
+        itemId: string,
+        payload: { resolution_note?: string; uploaded_filename?: string; trigger_reingest?: boolean }
+    ): Promise<Record<string, unknown>> => {
+        const response = await axios.post(`${AGRO_BASE}/api/hitl/${itemId}/resolve`, payload, {
+            headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        });
+        return response.data;
+    },
+
+    /** Submit thumbs-up or thumbs-down feedback */
+    submitFeedback: async (payload: {
+        session_id?: string;
+        query: string;
+        answer?: string;
+        thumbs: 'up' | 'down';
+        comment?: string;
+        role?: string;
+    }): Promise<{ status: string; thumbs: string }> => {
+        const response = await axios.post(`${AGRO_BASE}/api/feedback`, payload, {
+            headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        });
+        return response.data;
+    },
+
+    /** Build thumbnail URL (no network call). page is 1-indexed. */
+    getThumbnailUrl: (filename: string, page = 1): string =>
+        `${AGRO_BASE}/api/documents/thumbnail/${encodeURIComponent(filename)}?page=${page}`,
 };

@@ -30,6 +30,7 @@ export const ROUTE_PERMISSION_MAP: Record<string, PagePermission> = {
     "/dashboard": PAGE_PERMISSIONS.DASHBOARD,
     "/zete": PAGE_PERMISSIONS.KNOWLEDGE_GRAPH,
     "/agro-chat": PAGE_PERMISSIONS.KNOWLEDGE_GRAPH,
+    "/agro-dashboard": PAGE_PERMISSIONS.DASHBOARD,
     "/field-extraction": PAGE_PERMISSIONS.FIELD_EXTRACTION,
     "/2_way_match": PAGE_PERMISSIONS.ANALYTICS,
     "/projects": PAGE_PERMISSIONS.PROJECTS,
@@ -95,6 +96,7 @@ export interface PageInfo {
 
 export const AVAILABLE_PAGES: PageInfo[] = [
     { id: PAGE_PERMISSIONS.DASHBOARD, name: "Dashboard", description: "Main dashboard overview", route: "/dashboard" },
+    { id: PAGE_PERMISSIONS.DASHBOARD, name: "Agro Dashboard", description: "RAG analytics, HITL queue and document health", route: "/agro-dashboard" },
     { id: PAGE_PERMISSIONS.KNOWLEDGE_GRAPH, name: "Knowledge Graph", description: "Visualize data relationships", route: "/zete" },
     { id: PAGE_PERMISSIONS.FIELD_EXTRACTION, name: "Field Extraction", description: "Extract data from documents", route: "/field-extraction" },
     { id: PAGE_PERMISSIONS.ANALYTICS, name: "Analytics", description: "Two-way matching and analytics", route: "/2_way_match" },

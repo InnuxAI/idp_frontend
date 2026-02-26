@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { IconSend, IconSparkles, IconSearch, IconBulb, IconMessageChatbot, IconLeaf, IconFileText, IconBook, IconId, IconCategory, IconChevronDown, IconBrain } from "@tabler/icons-react";
+import { IconSend, IconSparkles, IconSearch, IconBulb, IconMessageChatbot, IconLeaf, IconFileText, IconBook, IconId, IconCategory, IconChevronDown, IconBrain, IconThumbUp, IconThumbDown, IconX, IconAlertCircle } from "@tabler/icons-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Avatar, AvatarFallback } from "../ui/avatar";
@@ -50,10 +50,18 @@ interface Message {
     sources?: AgroSourceDoc[];
     reasoning?: string;   // extracted reasoning section from LLM
     statusText?: string;  // live pipeline stage shown while streaming + empty
+    faithfulness?: {      // from SSE done event
+        score?: number;
+        verdict?: string;
+        supported_claims?: number;
+        total_claims?: number;
+    };
+    feedbackGiven?: "up" | "down"; // track if user already gave feedback
+    userQuery?: string;            // the original user question that triggered this assistant reply
 }
 
 interface AgroChatPanelProps {
-    onSourceClick?: (source: AgroSourceDoc, pageNumber?: number) => void;
+    onSourceClick?: (source: AgroSourceDoc, pageNumber?: number, msgContext?: { faithfulness?: Message["faithfulness"]; reasoning?: string }) => void;
 }
 
 // ─────────────────────────────────────────────
@@ -204,26 +212,22 @@ function WelcomeScreen({ onSuggestionClick }: { onSuggestionClick: (text: string
 
 function ReasoningPanel({
     reasoning,
-    sources,
-    onPageClick,
 }: {
     reasoning: string;
-    sources?: AgroSourceDoc[];
-    onPageClick?: (source: AgroSourceDoc, page: number) => void;
 }) {
     const [open, setOpen] = useState(false);
 
     if (!reasoning) return null;
 
     return (
-        <div className="-mx-5 -mb-1 mt-2">
-            {/* Toggle button — sits just below the sources row */}
+        <div className="mt-2 text-left">
+            {/* Toggle button */}
             <button
                 onClick={() => setOpen((v) => !v)}
-                className="flex items-center gap-1.5 px-5 py-1.5 w-full text-[11px] font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/20 transition-colors border-t border-gray-200/60 dark:border-zinc-700/50"
+                className="flex items-center gap-1.5 px-3 py-1.5 w-fit -ml-2 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-white/50 dark:hover:bg-black/20 rounded-lg transition-colors border border-transparent"
             >
                 <IconBrain size={12} className="opacity-70" />
-                <span className="flex-1 text-left">{open ? "Hide" : "View"} Reasoning</span>
+                <span>{open ? "Hide" : "View"} Reasoning</span>
                 <motion.span
                     animate={{ rotate: open ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
@@ -241,28 +245,9 @@ function ReasoningPanel({
                         transition={{ duration: 0.22, ease: "easeInOut" }}
                         className="overflow-hidden"
                     >
-                        <div className="px-5 pb-4 pt-3 bg-emerald-50/60 dark:bg-emerald-950/20 text-xs text-gray-600 dark:text-zinc-400 leading-relaxed space-y-2 rounded-b-2xl">
+                        <div className="p-3.5 mt-2 mb-1 bg-white/50 dark:bg-black/20 border border-gray-100 dark:border-zinc-700/50 rounded-xl text-xs text-gray-600 dark:text-zinc-400 leading-relaxed space-y-2 shadow-sm">
                             {/* Reasoning text */}
                             <p className="whitespace-pre-line">{reasoning}</p>
-
-                            {/* Per-source page badges */}
-                            {sources && sources.some(s => s.pages && s.pages.length > 0) && (
-                                <div className="flex items-center gap-1.5 pt-2 border-t border-emerald-100 dark:border-emerald-900/30 overflow-x-auto pb-0.5">
-                                    <span className="text-[10px] uppercase tracking-wider text-emerald-600 dark:text-emerald-500 font-semibold shrink-0">Pages cited:</span>
-                                    {sources.flatMap(src =>
-                                        (src.pages ?? []).map(pg => (
-                                            <button
-                                                key={`${src.source}-p${pg}`}
-                                                onClick={() => onPageClick?.(src, pg)}
-                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 bg-white dark:bg-zinc-800 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors shadow-sm"
-                                            >
-                                                <IconFileText size={9} />
-                                                {src.sourceStem || src.source.replace(/\.[^.]+$/, '')} · p.{pg}
-                                            </button>
-                                        ))
-                                    )}
-                                </div>
-                            )}
                         </div>
                     </motion.div>
                 )}
@@ -313,8 +298,8 @@ function parseRetrievalSources(data: Record<string, unknown>): AgroSourceDoc[] {
             supabaseId: typeof d.supabase_id === "string" ? d.supabase_id : undefined,
             summary: typeof d.summary === "string" ? d.summary : undefined,
             customMetadata: (d.custom_metadata && typeof d.custom_metadata === "object") ? d.custom_metadata as Record<string, unknown> : undefined,
-            score: typeof d.confidence_score === "number" ? d.confidence_score : undefined,
-            confidencePct: typeof d.confidence_pct === "string" ? d.confidence_pct : undefined,
+            score: typeof d.confidence_score === "number" ? d.confidence_score : (typeof d.score === "number" ? d.score : undefined),
+            confidencePct: typeof d.confidence_pct === "string" ? d.confidence_pct : (typeof d.confidencePct === "string" ? d.confidencePct : undefined),
             tier: typeof d.tier_label === "string" ? d.tier_label : (typeof d.tier === "number" ? `Tier ${d.tier}` : undefined),
             content: typeof d.excerpt === "string" ? d.excerpt : undefined,
             pages: Array.isArray(d.pages) ? (d.pages as number[]) : undefined,
@@ -328,6 +313,249 @@ function parseRetrievalSources(data: Record<string, unknown>): AgroSourceDoc[] {
         .filter((s) => s.source);
 }
 
+// ─────────────────────────────────────────────
+// Faithfulness badge
+// ─────────────────────────────────────────────
+
+function FaithfulnessBadge({ faith }: { faith: NonNullable<Message["faithfulness"]> }) {
+    const score = faith.score;
+    if (score === undefined) return null;
+    const pct = Math.round(score * 100);
+    const isHigh = pct >= 85;
+    const isMid = pct >= 70 && pct < 85;
+    const color = isHigh
+        ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200/60 dark:border-emerald-800/40"
+        : isMid
+            ? "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-200/60 dark:border-amber-800/40"
+            : "text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-200/60 dark:border-red-800/40";
+    const label = isHigh ? "High accuracy" : isMid ? "Moderate accuracy" : "Low accuracy";
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 2 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-1.5 mt-2"
+        >
+            <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${color}`}>
+                <IconAlertCircle size={9} className="opacity-70" />
+                Faithfulness {pct}% · {label}
+                {faith.supported_claims != null && faith.total_claims != null && (
+                    <span className="opacity-60 ml-0.5">· {faith.supported_claims}/{faith.total_claims} claims</span>
+                )}
+            </span>
+        </motion.div>
+    );
+}
+
+// ─────────────────────────────────────────────
+// Escalation modal (shown on thumbs-down)
+// ─────────────────────────────────────────────
+
+const GAP_TYPES = [
+    { value: "missing_doc", label: "Missing document" },
+    { value: "wrong_answer", label: "Wrong / irrelevant answer" },
+    { value: "hallucination", label: "Possible hallucination" },
+    { value: "other", label: "Other" },
+];
+
+function EscalateModal({
+    msg,
+    sessionId,
+    onClose,
+    onSuccess,
+}: {
+    msg: Message;
+    sessionId?: string;
+    onClose: () => void;
+    onSuccess: () => void;
+}) {
+    const [gapType, setGapType] = useState("missing_doc");
+    const [comment, setComment] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleSubmit = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const { agroApi } = await import("../../lib/agro-api");
+            await agroApi.escalateQuery({
+                query: msg.userQuery ?? "",  // original user question (stamped on assistant msg)
+                answer_given: msg.content,          // assistant's actual answer
+                session_id: sessionId,
+                comment: comment || undefined,
+                gap_type: gapType,
+            });
+            onSuccess();
+        } catch (e: unknown) {
+            setError(e instanceof Error ? e.message : "Request failed");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-zinc-800 w-full max-w-md mx-4 p-6"
+            >
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center border border-red-100 dark:border-red-800/40">
+                            <IconThumbDown size={14} className="text-red-500" />
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-900 dark:text-zinc-100">Send for Review</h3>
+                            <p className="text-[10px] text-gray-500 dark:text-zinc-400">Help us improve the knowledge base</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-400 transition-colors">
+                        <IconX size={14} />
+                    </button>
+                </div>
+
+                {/* Gap type */}
+                <div className="mb-4">
+                    <label className="text-[11px] uppercase tracking-wider font-semibold text-gray-500 dark:text-zinc-400 mb-2 block">Issue Type</label>
+                    <div className="flex flex-wrap gap-1.5">
+                        {GAP_TYPES.map(g => (
+                            <button
+                                key={g.value}
+                                onClick={() => setGapType(g.value)}
+                                className={`px-3 py-1 rounded-full text-[11px] font-medium border transition-all ${gapType === g.value
+                                    ? "bg-red-500 border-red-500 text-white shadow-sm"
+                                    : "border-gray-200 text-gray-600 hover:border-red-300 dark:border-zinc-700 dark:text-zinc-300"
+                                    }`}
+                            >
+                                {g.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Comment */}
+                <div className="mb-4">
+                    <label className="text-[11px] uppercase tracking-wider font-semibold text-gray-500 dark:text-zinc-400 mb-2 block">Additional Context (optional)</label>
+                    <textarea
+                        value={comment}
+                        onChange={e => setComment(e.target.value)}
+                        rows={3}
+                        placeholder="Describe what was missing or incorrect..."
+                        className="w-full text-sm bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-3 py-2 resize-none outline-none focus:border-emerald-400 dark:focus:border-emerald-600 dark:text-zinc-200 placeholder:text-gray-400 dark:placeholder:text-zinc-500"
+                    />
+                </div>
+
+                {error && (
+                    <p className="text-xs text-red-500 mb-3">{error}</p>
+                )}
+
+                <div className="flex gap-2 justify-end">
+                    <button
+                        onClick={onClose}
+                        className="px-4 py-2 rounded-xl text-sm text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={loading}
+                        className="px-4 py-2 rounded-xl text-sm font-medium bg-red-500 hover:bg-red-600 text-white disabled:opacity-50 transition-colors shadow-sm"
+                    >
+                        {loading ? "Sending…" : "Send for Review"}
+                    </button>
+                </div>
+            </motion.div>
+        </div>
+    );
+}
+
+// ─────────────────────────────────────────────
+// Feedback bar (thumbs up / down)
+// ─────────────────────────────────────────────
+
+function FeedbackBar({
+    msg,
+    sessionId,
+    onFeedback,
+}: {
+    msg: Message;
+    sessionId?: string;
+    onFeedback: (msgId: string, thumbs: "up" | "down") => void;
+}) {
+    const [showEscalate, setShowEscalate] = useState(false);
+    const [escalated, setEscalated] = useState(false);
+
+    const handleThumb = useCallback(async (thumbs: "up" | "down") => {
+        try {
+            const { agroApi } = await import("../../lib/agro-api");
+            await agroApi.submitFeedback({
+                session_id: sessionId,
+                query: msg.userQuery ?? "",  // original user question
+                answer: msg.content,          // assistant's answer
+                thumbs,
+            });
+        } catch { /* silent */ }
+        onFeedback(msg.id, thumbs);
+        if (thumbs === "down") setShowEscalate(true);
+    }, [msg.id, msg.content, msg.userQuery, sessionId, onFeedback]);
+
+    if (msg.feedbackGiven && !showEscalate) {
+        return (
+            <div className="flex items-center gap-1 mt-2">
+                {msg.feedbackGiven === "up" ? (
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">✔ Liked</span>
+                ) : escalated ? (
+                    <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">✔ Sent for review</span>
+                ) : (
+                    <span className="text-[10px] text-gray-400">Feedback recorded</span>
+                )}
+            </div>
+        );
+    }
+
+    return (
+        <>
+            {!msg.feedbackGiven && (
+                <div className="flex items-center gap-1 mt-2">
+                    <span className="text-[10px] text-gray-400 dark:text-zinc-600 mr-0.5">Helpful?</span>
+                    <button
+                        onClick={() => handleThumb("up")}
+                        className="p-1 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
+                        title="Thumbs up"
+                    >
+                        <IconThumbUp size={12} />
+                    </button>
+                    <button
+                        onClick={() => handleThumb("down")}
+                        className="p-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        title="Thumbs down — flag for review"
+                    >
+                        <IconThumbDown size={12} />
+                    </button>
+                </div>
+            )}
+
+            {showEscalate && (
+                <AnimatePresence>
+                    <EscalateModal
+                        msg={msg}
+                        sessionId={sessionId}
+                        onClose={() => { setShowEscalate(false); }}
+                        onSuccess={() => {
+                            setShowEscalate(false);
+                            setEscalated(true);
+                        }}
+                    />
+                </AnimatePresence>
+            )}
+        </>
+    );
+}
+
 export function AgroChatPanel({ onSourceClick }: AgroChatPanelProps) {
     const [input, setInput] = useState("");
     const [messages, setMessages] = useState<Message[]>([]);
@@ -335,6 +563,10 @@ export function AgroChatPanel({ onSourceClick }: AgroChatPanelProps) {
     const [sessionId, setSessionId] = useState<string | undefined>();
     const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set(ALL_TYPES));
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const handleFeedback = useCallback((msgId: string, thumbs: "up" | "down") => {
+        setMessages(prev => prev.map(m => m.id === msgId ? { ...m, feedbackGiven: thumbs } : m));
+    }, []);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -377,6 +609,7 @@ export function AgroChatPanel({ onSourceClick }: AgroChatPanelProps) {
             content: "",
             timestamp: new Date(),
             isStreaming: true,
+            userQuery: text,   // stamp the original question so EscalateModal has it
         };
         setMessages((prev) => [...prev, aiPlaceholder]);
 
@@ -411,11 +644,23 @@ export function AgroChatPanel({ onSourceClick }: AgroChatPanelProps) {
                                 ? parseRetrievalSources({ documents: d.llm_sources as unknown[] })
                                 : null;
                             const reasoning = typeof d.reasoning === "string" ? d.reasoning : undefined;
+                            // Extract faithfulness from done event
+                            let faithfulness: Message["faithfulness"] | undefined;
+                            const raw = d.faithfulness as Record<string, unknown> | undefined;
+                            if (raw && typeof raw === "object") {
+                                faithfulness = {
+                                    score: typeof raw.score === "number" ? raw.score : undefined,
+                                    verdict: typeof raw.verdict === "string" ? raw.verdict : undefined,
+                                    supported_claims: typeof raw.supported_claims === "number" ? raw.supported_claims : undefined,
+                                    total_claims: typeof raw.total_claims === "number" ? raw.total_claims : undefined,
+                                };
+                            }
                             return {
                                 ...m,
                                 isStreaming: false,
                                 ...(llmSources && llmSources.length > 0 ? { sources: llmSources } : {}),
                                 ...(reasoning ? { reasoning } : {}),
+                                ...(faithfulness ? { faithfulness } : {}),
                             };
                         })
                     );
@@ -563,23 +808,26 @@ export function AgroChatPanel({ onSourceClick }: AgroChatPanelProps) {
                                                 </div>
                                             )}
 
-                                            {/* Source badges — shown when stream is done and sources arrived */}
-                                            {!msg.isStreaming && msg.sources && msg.sources.length > 0 && (
+                                            {/* Pages Cited — shown when stream is done and sources arrived */}
+                                            {!msg.isStreaming && msg.sources && msg.sources.some(s => s.pages && s.pages.length > 0) && (
                                                 <motion.div
                                                     initial={{ opacity: 0, y: 4 }}
                                                     animate={{ opacity: 1, y: 0 }}
                                                     className="flex flex-nowrap items-center gap-1.5 mt-3 pt-3 overflow-x-auto border-t border-gray-200/60 dark:border-zinc-700/50 pb-0.5"
                                                 >
-                                                    <span className="text-[10px] text-gray-400 dark:text-zinc-500 uppercase tracking-wider font-medium mr-1 self-center">
-                                                        Sources:
-                                                    </span>
-                                                    {msg.sources.map((src, idx) => (
-                                                        <SourceBadge
-                                                            key={`${src.source}-${idx}`}
-                                                            source={src}
-                                                            onClick={() => onSourceClick?.(src)}
-                                                        />
-                                                    ))}
+                                                    <span className="text-[10px] uppercase tracking-wider text-emerald-600 dark:text-emerald-500 font-semibold shrink-0">Sources:</span>
+                                                    {msg.sources.flatMap(src =>
+                                                        (src.pages ?? []).map(pg => (
+                                                            <button
+                                                                key={`${src.source}-p${pg}`}
+                                                                onClick={() => onSourceClick?.(src, pg, { faithfulness: msg.faithfulness, reasoning: msg.reasoning })}
+                                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 bg-white dark:bg-zinc-800 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors shadow-sm"
+                                                            >
+                                                                <IconFileText size={9} />
+                                                                {src.sourceStem || src.source.replace(/\.[^.]+$/, '')} {src.score != null ? `${(src.score * 100).toFixed(1)}%` : src.confidencePct || ''} · p.{pg}
+                                                            </button>
+                                                        ))
+                                                    )}
                                                 </motion.div>
                                             )}
 
@@ -587,8 +835,20 @@ export function AgroChatPanel({ onSourceClick }: AgroChatPanelProps) {
                                             {!msg.isStreaming && msg.reasoning && (
                                                 <ReasoningPanel
                                                     reasoning={msg.reasoning}
-                                                    sources={msg.sources}
-                                                    onPageClick={(src, pg) => onSourceClick?.(src, pg)}
+                                                />
+                                            )}
+
+                                            {/* Faithfulness badge */}
+                                            {/* {!msg.isStreaming && !msg.isError && msg.faithfulness && (
+                                                <FaithfulnessBadge faith={msg.faithfulness} />
+                                            )} */}
+
+                                            {/* Feedback bar */}
+                                            {!msg.isStreaming && !msg.isError && (
+                                                <FeedbackBar
+                                                    msg={msg}
+                                                    sessionId={sessionId}
+                                                    onFeedback={handleFeedback}
                                                 />
                                             )}
                                         </>
